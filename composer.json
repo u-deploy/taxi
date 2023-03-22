@@ -3,6 +3,7 @@
     "description": "Multi repo manager for Laravel Valet",
     "type": "project",
     "require": {
+        "php": "^8.0",
         "laravel/valet": "^4.0"
     },
     "require-dev": {
@@ -12,12 +13,16 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "UDeploy\\Taxi\\": "cli/"
+            "UDeploy\\Taxi\\": "cli/Taxi/"
         }
     },
     "authors": [
         {
-            "name": "Richard Styles"
+            "name": "Richard Styles",
+            "email": "richardstyles@gmail.com"
         }
+    ],
+    "bin": [
+        "taxi"
     ]
 }
