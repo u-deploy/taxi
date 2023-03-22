@@ -1,0 +1,23 @@
+{
+    "name": "u-deploy/taxi",
+    "description": "Multi repo manager for Laravel Valet",
+    "type": "project",
+    "require": {
+        "laravel/valet": "^4.0"
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.5",
+        "laravel/pint": "^1.7"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "UDeploy\\Taxi\\": "cli/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Richard Styles"
+        }
+    ]
+}
