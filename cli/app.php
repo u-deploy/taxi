@@ -52,7 +52,7 @@ Upgrader::onEveryRun();
  * Install Taxi and any required services.
  */
 $app->command('install', function (OutputInterface $output) {
-    //TODO
+    Taxi::install();
     output(PHP_EOL.'<info>Taxi installed successfully!</info>');
 })->descriptions('Install Taxi');
 
@@ -60,7 +60,7 @@ $app->command('install', function (OutputInterface $output) {
  * Call Taxi configuration and save to current directory
  */
 $app->command('call [url]', function (InputInterface $input, OutputInterface $output, $url = null) {
-    //TODO
+    Taxi::call($url);
     output(PHP_EOL.'<info>Taxi called successfully!</info>');
 })->descriptions('Call Taxi configuration');
 
@@ -68,7 +68,7 @@ $app->command('call [url]', function (InputInterface $input, OutputInterface $ou
  * Build Taxi configuration
  */
 $app->command('build', function (OutputInterface $output) {
-    //TODO
+    Taxi::build();
     output(PHP_EOL.'<info>Taxi build successful!</info>');
 })->descriptions('Build Taxi configuration');
 
@@ -76,6 +76,6 @@ $app->command('build', function (OutputInterface $output) {
  * Reset Taxi configuration
  */
 $app->command('reset', function (OutputInterface $output) {
-    //TODO
+    Taxi::reset();
     output(PHP_EOL.'<info>Taxi reset successful!</info>');
 })->descriptions('Reset Taxi configuration');

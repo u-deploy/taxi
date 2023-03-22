@@ -12,6 +12,9 @@
     },
     "license": "MIT",
     "autoload": {
+        "files": [
+            "cli/Includes/facades.php"
+        ],
         "psr-4": {
             "UDeploy\\Taxi\\": "cli/Taxi/"
         }
