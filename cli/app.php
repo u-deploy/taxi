@@ -2,18 +2,12 @@
 
 use Illuminate\Container\Container;
 use Silly\Application;
-use Silly\Command\Command;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Valet\Drivers\ValetDriver;
-use function Valet\info;
 use function Valet\output;
-use function Valet\table;
-use function Valet\warning;
 use function Valet\writer;
 
 $version = '0.0.0';
@@ -79,3 +73,5 @@ $app->command('reset', function (OutputInterface $output) {
     Taxi::reset();
     output(PHP_EOL.'<info>Taxi reset successful!</info>');
 })->descriptions('Reset Taxi configuration');
+
+return $app;

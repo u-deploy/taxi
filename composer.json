@@ -8,7 +8,8 @@
     },
     "require-dev": {
         "mockery/mockery": "^1.5",
-        "laravel/pint": "^1.7"
+        "laravel/pint": "^1.7",
+        "yoast/phpunit-polyfills": "^0.2.0"
     },
     "license": "MIT",
     "autoload": {
@@ -19,6 +20,12 @@
         "psr-4": {
             "UDeploy\\Taxi\\": "cli/Taxi/"
         }
+    },
+    "autoload-dev": {
+        "files": [
+            "tests/UsesNullWriter.php",
+            "tests/BaseApplicationTestCase.php"
+        ]
     },
     "authors": [
         {

@@ -14,9 +14,9 @@ if (! defined('TAXI_HOME_PATH')) {
 
 function git_branch(string $sitePath): string
 {
-    if (!file_exists($sitePath . '/.git/HEAD')) {
+    if (! file_exists($sitePath.'/.git/HEAD')) {
         return '';
     }
 
-    return implode('/', array_slice(explode('/', file_get_contents($sitePath . '/.git/HEAD')), 2));
+    return implode('/', array_slice(explode('/', file_get_contents($sitePath.'/.git/HEAD')), 2));
 }
