@@ -17,11 +17,10 @@ class Taxi
         //
     }
 
-    public function call(?string $url = null)
+    public function call(?string $url = null): ?bool
     {
-        if(!is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
-            warning('Invalid url');
-            return;
+        if (! is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return warning('Invalid url');
         }
 
         $contents = $this->getCallContents($url);
@@ -30,6 +29,8 @@ class Taxi
             getcwd().'/taxi.json',
             $contents
         );
+
+        return true;
     }
 
     protected function getCallContents(?string $url): string

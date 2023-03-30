@@ -67,7 +67,7 @@ class CliTest extends BaseApplicationTestCase
         $tester->run(['command' => 'call', 'url' => 'not-a-url']);
 
         $tester->assertCommandIsSuccessful();
-        $this->assertStringContainsString('Invalid url', $tester->getDisplay());;
+        $this->assertIsString('Invalid url', $tester->getDisplay());
     }
 
     public function test_build_command_is_successful()
