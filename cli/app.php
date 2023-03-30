@@ -44,7 +44,7 @@ Upgrader::onEveryRun();
  * Install Taxi and any required services.
  */
 $app->command('install', function (OutputInterface $output) {
-    Taxi::install();
+    Taxi::symlinkToUsersBin();
     output(PHP_EOL.'<info>Taxi installed successfully!</info>');
 })->descriptions('Install Taxi');
 

@@ -2,6 +2,7 @@
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
+use UDeploy\Taxi\CommandLine;
 use UDeploy\Taxi\Filesystem;
 use function Valet\swap;
 
@@ -13,6 +14,12 @@ class CliTest extends BaseApplicationTestCase
     public function test_install_command_is_successful()
     {
         [$app, $tester] = $this->appAndTester();
+
+        $cli = Mockery::mock(CommandLine::class);
+        $cli->shouldReceive('quietlyAsUser')->once();
+        $cli->shouldReceive('runAsUser')->once();
+
+        swap(CommandLine::class, $cli);
 
         $tester->run(['command' => 'install']);
 

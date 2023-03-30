@@ -7,14 +7,29 @@ use function Valet\warning;
 
 class Taxi
 {
+    public $taxiBin = BREW_PREFIX . '/bin/taxi';
+
     public function __construct(public CommandLine $cli, public Filesystem $files, public Client $client)
     {
         //
     }
 
-    public function install()
+    /**
+     * Symlink the Valet Bash script into the user's local bin.
+     */
+    public function symlinkToUsersBin(): void
     {
-        //
+        $this->unlinkFromUsersBin();
+
+        $this->cli->runAsUser('ln -s "' . realpath(__DIR__ . '/../../taxi') . '" ' . $this->taxiBin);
+    }
+
+    /**
+     * Remove the symlink from the user's local bin.
+     */
+    public function unlinkFromUsersBin(): void
+    {
+        $this->cli->quietlyAsUser('rm ' . $this->taxiBin);
     }
 
     public function call(?string $url = null): ?bool
