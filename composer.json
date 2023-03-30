@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "php": "^8.0",
-        "laravel/valet": "^4.0"
+        "laravel/valet": "^4.0",
+        "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
         "mockery/mockery": "^1.5",

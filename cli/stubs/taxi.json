@@ -1,5 +1,4 @@
 {
-  "valet": true,
   "repos": [
     {
       "name": "laravel-1",
@@ -15,7 +14,6 @@
     },
     {
       "name": "laravel-2",
-      "php": "php@8.1",
       "branch": "main",
       "url": "https://github.com/laravel/laravel",
       "post-build": [
