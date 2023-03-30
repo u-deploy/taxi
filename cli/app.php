@@ -7,7 +7,7 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use function Valet\output;
+use function Valet\info;
 use function Valet\writer;
 
 $version = '0.0.0';
@@ -45,7 +45,7 @@ Upgrader::onEveryRun();
  */
 $app->command('install', function (OutputInterface $output) {
     Taxi::symlinkToUsersBin();
-    output(PHP_EOL.'<info>Taxi installed successfully!</info>');
+    info('<info>Taxi installed successfully!</info>');
 })->descriptions('Install Taxi');
 
 /**
@@ -53,7 +53,7 @@ $app->command('install', function (OutputInterface $output) {
  */
 $app->command('call [url]', function (InputInterface $input, OutputInterface $output, $url = null) {
     if (Taxi::call($url)) {
-        output(PHP_EOL.'<info>Taxi called successfully!</info>');
+        info('<info>Taxi called successfully!</info>');
     }
 })->descriptions('Call Taxi configuration');
 
@@ -62,7 +62,7 @@ $app->command('call [url]', function (InputInterface $input, OutputInterface $ou
  */
 $app->command('build', function (OutputInterface $output) {
     Taxi::build();
-    output(PHP_EOL.'<info>Taxi build successful!</info>');
+    info('<info>Taxi build successful!</info>');
 })->descriptions('Build Taxi configuration');
 
 /**
@@ -70,7 +70,24 @@ $app->command('build', function (OutputInterface $output) {
  */
 $app->command('reset', function (OutputInterface $output) {
     Taxi::reset();
-    output(PHP_EOL.'<info>Taxi reset successful!</info>');
+    info('<info>Taxi reset successful!</info>');
 })->descriptions('Reset Taxi configuration');
+
+/**
+ * Install the sudoers.d entries so password is no longer required.
+ */
+$app->command('trust [--off]', function (OutputInterface $output, $off) {
+    if ($off) {
+        Taxi::removeSudoersEntry();
+
+        return info('Sudoers entries have been removed for Taxi.');
+    }
+
+    Taxi::createSudoersEntry();
+
+    info('Sudoers entries have been added for Taxi.');
+})->descriptions('Add sudoers file for Taxi to make Taxi commands run without passwords', [
+    '--off' => 'Remove the sudoers files so normal sudo password prompts are required.',
+]);
 
 return $app;

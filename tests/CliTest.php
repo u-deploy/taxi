@@ -94,4 +94,34 @@ class CliTest extends BaseApplicationTestCase
 
         $tester->assertCommandIsSuccessful();
     }
+
+    public function test_trust_command_is_successful()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        $files = Mockery::mock(Filesystem::class);
+        $files->shouldReceive('ensureDirExists')->once()->with('/etc/sudoers.d')->andReturnTrue();
+        $files->shouldReceive('put')->once()->with('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = ' . BREW_PREFIX . '/bin/taxi *
+        %admin ALL=(root) NOPASSWD:SETENV: TAXI' . PHP_EOL);
+
+        swap(Filesystem::class, $files);
+
+        $tester->run(['command' => 'trust']);
+
+        $tester->assertCommandIsSuccessful();
+    }
+
+    public function test_trust_off_command_is_successful()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        $cli = Mockery::mock(CommandLine::class);
+        $cli->shouldReceive('quietly')->once()->with('rm /etc/sudoers.d/taxi');
+
+        swap(CommandLine::class, $cli);
+
+        $tester->run(['command' => 'trust', '--off' => true]);
+
+        $tester->assertCommandIsSuccessful();
+    }
 }
