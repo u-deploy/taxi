@@ -9,6 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use function Valet\info;
 use function Valet\writer;
+use function Valet\table;
 
 $version = '0.0.0';
 
@@ -89,5 +90,25 @@ $app->command('trust [--off]', function (OutputInterface $output, $off) {
 })->descriptions('Add sudoers file for Taxi to make Taxi commands run without passwords', [
     '--off' => 'Remove the sudoers files so normal sudo password prompts are required.',
 ]);
+
+/**
+ * List sites in Valet + add Taxi state
+ */
+$app->command('valet', function (OutputInterface $output) {
+    $sites = Site::links();
+
+    $sites = $sites->map(function (array $site) {
+        $local = file_exists($site['path'] . '/taxi.json');
+        $multi = file_exists( $site['path'] . '/../taxi.json');
+
+        $site['taxi'] = (!$local && !$multi) ? '' : ($local ? $site['path'] . '/taxi.json' :  realpath($site['path'] . '/../taxi.json'));
+
+        return $site;
+    });
+
+    table(['Site', 'SSL', 'URL', 'Path', 'PHP Version', 'Taxi'], $sites->all());
+
+//    output(PHP_EOL.'<info>Taxi configuration file added</info>');
+})->descriptions('List all sites which currently use Taxi');
 
 return $app;

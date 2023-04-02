@@ -16,6 +16,9 @@ class BaseApplicationTestCase extends TestCase
 
     public function tearDown(): void
     {
+        // clear test valet config
+        Site::links()->each(fn ($site) => Site::unlink($site['site']));
+
         Mockery::close();
     }
 
@@ -30,6 +33,12 @@ class BaseApplicationTestCase extends TestCase
         if (Filesystem::isDir(TAXI_HOME_PATH)) {  // uses Valet facade instance of Filesystem
             Filesystem::rmDirAndContents(TAXI_HOME_PATH);
         }
+
+        Configuration::createConfigurationDirectory();
+        Configuration::createDriversDirectory();
+        Configuration::createLogDirectory();
+        Configuration::createCertificatesDirectory();
+        Configuration::writeBaseConfiguration();
     }
 
     /**

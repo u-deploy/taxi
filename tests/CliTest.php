@@ -124,4 +124,44 @@ class CliTest extends BaseApplicationTestCase
 
         $tester->assertCommandIsSuccessful();
     }
+
+
+    public function test_valet_command()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        Site::link(__DIR__.'/fixtures/Parked/Sites/taxi-test-site', 'taxi');
+        $tester->run(['command' => 'valet']);
+        $tester->assertCommandIsSuccessful();
+
+        $this->assertStringContainsString('http://taxi.test', $tester->getDisplay());
+        $this->assertStringContainsString('fixtures/Parked/Sites/taxi.json |'.PHP_EOL, $tester->getDisplay());
+    }
+
+    public function test_valet_command_with_taxi_file_in_site()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        Site::link(__DIR__.'/fixtures/Parked/Sites/Single/single-taxi-site', 'taxi-local');
+        $tester->run(['command' => 'valet']);
+        $tester->assertCommandIsSuccessful();
+
+        $this->assertStringContainsString('http://taxi-local.test', $tester->getDisplay());
+        $this->assertStringContainsString('fixtures/Parked/Sites/Single/single-taxi-site/taxi.json |'.PHP_EOL, $tester->getDisplay());
+    }
+
+
+
+    public function test_valet_command_non_taxi()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        Site::link(__DIR__.'/fixtures/Parked/Sites/Link/standard-valet-site', 'valet');
+
+        $tester->run(['command' => 'valet']);
+        $tester->assertCommandIsSuccessful();
+
+        $this->assertStringContainsString('http://valet.test', $tester->getDisplay());
+        $this->assertStringContainsString('|      |'.PHP_EOL, $tester->getDisplay());
+    }
 }
