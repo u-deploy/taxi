@@ -21,4 +21,9 @@ class Filesystem extends ValetFilesystem
 
         return file_exists($custom) ? $custom : $default;
     }
+
+    public function cwd(): false|string
+    {
+        return getcwd();
+    }
 }

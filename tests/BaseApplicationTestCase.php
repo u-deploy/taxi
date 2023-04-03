@@ -18,7 +18,7 @@ class BaseApplicationTestCase extends TestCase
     {
         // clear test valet config
         Site::links()->each(fn ($site) => Site::unlink($site['site']));
-
+        Filesystem::unlink('taxi.json');
         Mockery::close();
     }
 

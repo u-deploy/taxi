@@ -8,6 +8,7 @@ use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
 use function Taxi\git_branch;
+use UDeploy\Taxi\Exceptions\ConfigurationMissing;
 use UDeploy\Taxi\Exceptions\InvalidConfiguration;
 use function Valet\info;
 use function Valet\warning;
@@ -216,15 +217,23 @@ class Taxi
             ->each(fn ($hook) => $this->cli->path($path)->runAsUser($hook));
     }
 
+    /**
+     * @throws ConfigurationMissing
+     * @throws InvalidConfiguration
+     */
     public function loadTaxiConfig(): void
     {
+        if (! $this->taxiConfigExists()) {
+            throw new ConfigurationMissing;
+        }
+
         $config = $this->files->get(
             $this->taxiConfigPath()
         );
 
-        // TODO add validation run
-
-        $this->taxiConfig = json_decode($config, true);
+        if ($this->isTaxiConfigValid()) {
+            $this->taxiConfig = json_decode($config, true);
+        }
     }
 
     /**
@@ -242,7 +251,7 @@ class Taxi
      */
     public function taxiConfigPath(): string
     {
-        return getcwd().'/taxi.json';
+        return $this->files->cwd().'/taxi.json';
     }
 
     /**

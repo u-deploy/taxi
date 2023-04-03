@@ -77,22 +77,24 @@ class CliTest extends BaseApplicationTestCase
         $this->assertIsString('Invalid url', $tester->getDisplay());
     }
 
-    public function test_build_command_is_successful()
+    public function test_build_command_shows_warning_without_taxi_configuration()
     {
         [$app, $tester] = $this->appAndTester();
 
         $tester->run(['command' => 'build']);
 
         $tester->assertCommandIsSuccessful();
+        $this->assertStringContainsString('No taxi.json file found', $tester->getDisplay());
     }
 
-    public function test_reset_command_is_successful()
+    public function test_reset_command_shows_warning_without_taxi_configuration()
     {
         [$app, $tester] = $this->appAndTester();
 
         $tester->run(['command' => 'reset']);
 
         $tester->assertCommandIsSuccessful();
+        $this->assertStringContainsString('No taxi.json file found', $tester->getDisplay());
     }
 
     public function test_trust_command_is_successful()

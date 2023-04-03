@@ -9,6 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use function Valet\info;
 use function Valet\table;
+use function Valet\warning;
 use function Valet\writer;
 
 $version = '0.0.0';
@@ -62,16 +63,24 @@ $app->command('call [url]', function (InputInterface $input, OutputInterface $ou
  * Build Taxi configuration
  */
 $app->command('build', function (OutputInterface $output) {
-    Taxi::build();
-    info('<info>Taxi build successful!</info>');
+    try {
+        Taxi::build();
+        info('<info>Taxi build successful!</info>');
+    } catch (Exception $e) {
+        warning($e->getMessage());
+    }
 })->descriptions('Build Taxi configuration');
 
 /**
  * Reset Taxi configuration
  */
 $app->command('reset', function (OutputInterface $output) {
-    Taxi::reset();
-    info('<info>Taxi reset successful!</info>');
+    try {
+        Taxi::reset();
+        info('<info>Taxi reset successful!</info>');
+    } catch (Exception $e) {
+        warning($e->getMessage());
+    }
 })->descriptions('Reset Taxi configuration');
 
 /**
