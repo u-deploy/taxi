@@ -11,11 +11,14 @@ class Filesystem extends ValetFilesystem
      */
     public function getTaxiStub(string $filename): string
     {
+        return $this->get($this->getStubPath($filename));
+    }
+
+    public function getStubPath(string $filename): string
+    {
         $default = __DIR__.'/../stubs/'.$filename;
         $custom = TAXI_HOME_PATH.'/stubs/'.$filename;
 
-        $path = file_exists($custom) ? $custom : $default;
-
-        return $this->get($path);
+        return file_exists($custom) ? $custom : $default;
     }
 }

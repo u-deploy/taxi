@@ -4,7 +4,11 @@ namespace UDeploy\Taxi;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Str;
+use Opis\JsonSchema\Errors\ErrorFormatter;
+use Opis\JsonSchema\ValidationResult;
+use Opis\JsonSchema\Validator;
 use function Taxi\git_branch;
+use UDeploy\Taxi\Exceptions\InvalidConfiguration;
 use function Valet\info;
 use function Valet\warning;
 
@@ -239,5 +243,25 @@ class Taxi
     public function taxiConfigPath(): string
     {
         return getcwd().'/taxi.json';
+    }
+
+    /**
+     * @throws InvalidConfiguration
+     */
+    public function isTaxiConfigValid(): bool
+    {
+        $validator = new Validator();
+
+        /** @var ValidationResult $result */
+        $result = $validator->validate($this->taxiConfig, $this->files->getStubPath('schema.json'));
+
+        if ($result->isValid()) {
+            return true;
+        }
+
+        // throw exception and populate message based on validation errors
+        throw new InvalidConfiguration(
+            implode(PHP_EOL, (new ErrorFormatter())->format($result->error()))
+        );
     }
 }
