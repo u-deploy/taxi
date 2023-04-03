@@ -1,5 +1,5 @@
 {
-  "repos": [
+  "vcs": [
     {
       "name": "laravel-1",
       "php": "php@8.1",
