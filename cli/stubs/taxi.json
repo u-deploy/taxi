@@ -1,11 +1,11 @@
 {
-  "vcs": [
+  "sites": [
     {
       "name": "laravel-1",
       "php": "php@8.1",
       "branch": "main",
       "secure": true,
-      "url": "https://github.com/laravel/laravel",
+      "vcs": "https://github.com/laravel/laravel",
       "post-build": [
         "cp .env.example .env",
         "php artisan key:generate"
@@ -15,7 +15,7 @@
     {
       "name": "laravel-2",
       "branch": "main",
-      "url": "https://github.com/laravel/laravel",
+      "vcs": "https://github.com/laravel/laravel",
       "post-build": [
         "cp .env.example .env"
       ],

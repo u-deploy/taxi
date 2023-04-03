@@ -93,7 +93,7 @@ class Taxi
         $this->loadTaxiConfig();
 
         // loop through vcs and build sites
-        collect($this->taxiConfig['vcs'])->each(fn ($site) => $this->buildSite($site, $root));
+        collect($this->taxiConfig['sites'])->each(fn ($site) => $this->buildSite($site, $root));
 
         info('build completed');
     }
@@ -106,7 +106,7 @@ class Taxi
         info('Cloning repository: '.$site['name']);
 
         // TODO add checks to make sure folder is clear
-        $this->cli->path($root)->runAsUser('git clone '.$site['url'].' '.$folder);
+        $this->cli->path($root)->runAsUser('git clone '.$site['vcs'].' '.$folder);
 
         // Link to valet
         $this->cli->path($path)->runAsUser('valet link '.$folder);
@@ -156,7 +156,7 @@ class Taxi
 
         $this->loadTaxiConfig();
 
-        collect($this->taxiConfig['repos'])->each(fn ($site) => $this->resetSite($site, $root));
+        collect($this->taxiConfig['sites'])->each(fn ($site) => $this->resetSite($site, $root));
     }
 
     public function resetSite(array $site, string $root): array
