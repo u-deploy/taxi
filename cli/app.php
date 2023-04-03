@@ -8,8 +8,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use function Valet\info;
-use function Valet\writer;
 use function Valet\table;
+use function Valet\writer;
 
 $version = '0.0.0';
 
@@ -98,10 +98,10 @@ $app->command('valet', function (OutputInterface $output) {
     $sites = Site::links();
 
     $sites = $sites->map(function (array $site) {
-        $local = file_exists($site['path'] . '/taxi.json');
-        $multi = file_exists( $site['path'] . '/../taxi.json');
+        $local = file_exists($site['path'].'/taxi.json');
+        $multi = file_exists($site['path'].'/../taxi.json');
 
-        $site['taxi'] = (!$local && !$multi) ? '' : ($local ? $site['path'] . '/taxi.json' :  realpath($site['path'] . '/../taxi.json'));
+        $site['taxi'] = (! $local && ! $multi) ? '' : ($local ? $site['path'].'/taxi.json' : realpath($site['path'].'/../taxi.json'));
 
         return $site;
     });

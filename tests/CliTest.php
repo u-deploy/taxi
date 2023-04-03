@@ -101,8 +101,8 @@ class CliTest extends BaseApplicationTestCase
 
         $files = Mockery::mock(Filesystem::class);
         $files->shouldReceive('ensureDirExists')->once()->with('/etc/sudoers.d')->andReturnTrue();
-        $files->shouldReceive('put')->once()->with('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = ' . BREW_PREFIX . '/bin/taxi *
-        %admin ALL=(root) NOPASSWD:SETENV: TAXI' . PHP_EOL);
+        $files->shouldReceive('put')->once()->with('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = '.BREW_PREFIX.'/bin/taxi *
+        %admin ALL=(root) NOPASSWD:SETENV: TAXI'.PHP_EOL);
 
         swap(Filesystem::class, $files);
 
@@ -124,7 +124,6 @@ class CliTest extends BaseApplicationTestCase
 
         $tester->assertCommandIsSuccessful();
     }
-
 
     public function test_valet_command()
     {
@@ -149,8 +148,6 @@ class CliTest extends BaseApplicationTestCase
         $this->assertStringContainsString('http://taxi-local.test', $tester->getDisplay());
         $this->assertStringContainsString('fixtures/Parked/Sites/Single/single-taxi-site/taxi.json |'.PHP_EOL, $tester->getDisplay());
     }
-
-
 
     public function test_valet_command_non_taxi()
     {
