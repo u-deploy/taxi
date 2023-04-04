@@ -6,9 +6,9 @@ use function Valet\testing;
 
 if (! defined('TAXI_HOME_PATH')) {
     if (testing()) {
-        define('TAXI_HOME_PATH', __DIR__.'/../../tests/config/taxi');
+        define('TAXI_HOME_PATH', __DIR__.'/../../tests/fixtures');
     } else {
-        define('TAXI_HOME_PATH', $_SERVER['HOME'].'/.config/taxi');
+        define('TAXI_HOME_PATH', getcwd());
     }
 }
 

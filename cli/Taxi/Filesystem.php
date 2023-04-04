@@ -19,7 +19,7 @@ class Filesystem extends ValetFilesystem
         $default = __DIR__.'/../stubs/'.$filename;
         $custom = TAXI_HOME_PATH.'/stubs/'.$filename;
 
-        return file_exists($custom) ? $custom : $default;
+        return file_exists($custom) ? realpath($custom) : realpath($default);
     }
 
     public function cwd(): false|string

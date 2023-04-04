@@ -70,7 +70,7 @@ class Taxi
         $contents = $this->getCallContents($url);
 
         $this->files->putAsUser(
-            getcwd().'/taxi.json',
+            $this->files->cwd().'/taxi.json',
             $contents
         );
 
@@ -92,10 +92,10 @@ class Taxi
     public function build()
     {
         // maintain known root folder
-        $root = getcwd();
+        $root = $this->files->cwd();
 
         // get te configuration / throw exception on bad file
-        $this->loadTaxiConfig();
+        $this->loadTaxiConfig($root);
 
         // loop through vcs and build sites
         collect($this->taxiConfig['sites'])->each(fn ($site) => $this->buildSite($site, $root));
@@ -157,7 +157,7 @@ class Taxi
      */
     public function reset()
     {
-        $root = getcwd();
+        $root = $this->files->cwd();
 
         $this->loadTaxiConfig();
 
@@ -231,8 +231,8 @@ class Taxi
             $this->taxiConfigPath()
         );
 
-        if ($this->isTaxiConfigValid()) {
-            $this->taxiConfig = json_decode($config, true);
+        if ($this->isTaxiConfigValid($config)) {
+            $this->taxiConfig = json_decode($config, false);
         }
     }
 
@@ -257,20 +257,21 @@ class Taxi
     /**
      * @throws InvalidConfiguration
      */
-    public function isTaxiConfigValid(): bool
+    public function isTaxiConfigValid(string $config): bool
     {
         $validator = new Validator();
 
         /** @var ValidationResult $result */
-        $result = $validator->validate($this->taxiConfig, $this->files->getStubPath('schema.json'));
+        $result = $validator->validate(json_decode($config), $this->files->getTaxiStub('schema.json'));
 
         if ($result->isValid()) {
             return true;
         }
 
+        $errors = (new ErrorFormatter())->formatFlat($result->error());
         // throw exception and populate message based on validation errors
         throw new InvalidConfiguration(
-            implode(PHP_EOL, (new ErrorFormatter())->format($result->error()))
+            implode(PHP_EOL, $errors)
         );
     }
 }

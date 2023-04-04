@@ -32,13 +32,16 @@ class CliTest extends BaseApplicationTestCase
 
         $contents = json_encode(['foo' => 'bar']);
 
-        $files = Mockery::mock(Filesystem::class);
+        $files = Mockery::mock(Filesystem::class)->makePartial();
         $files->shouldReceive('getTaxiStub')->once()->with('taxi.json')->andReturn($contents);
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Scratch'));
         $files->shouldReceive('putAsUser')->once()->withSomeOfArgs($contents);
 
         swap(Filesystem::class, $files);
 
         $tester->run(['command' => 'call']);
+
+        var_dump($tester->getDisplay());
 
         $tester->assertCommandIsSuccessful();
     }
@@ -56,7 +59,8 @@ class CliTest extends BaseApplicationTestCase
             ->once()
             ->andReturn(new Response(200, [], $contents));
 
-        $files = Mockery::mock(Filesystem::class);
+        $files = Mockery::mock(Filesystem::class)->makePartial();
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Scratch'));
         $files->shouldReceive('putAsUser')->once()->withSomeOfArgs($contents);
 
         swap(Client::class, $guzzle);
@@ -85,6 +89,36 @@ class CliTest extends BaseApplicationTestCase
 
         $tester->assertCommandIsSuccessful();
         $this->assertStringContainsString('No taxi.json file found', $tester->getDisplay());
+    }
+
+    public function test_build_command_shows_warning_with_empty_taxi_configuration()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        $files = Mockery::mock(Filesystem::class)->makePartial();
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Bad/empty'));
+
+        swap(Filesystem::class, $files);
+
+        $tester->run(['command' => 'build']);
+
+        $tester->assertCommandIsSuccessful();
+        $this->assertStringContainsString('The data (null) must match the type: object', $tester->getDisplay());
+    }
+
+    public function test_build_command_shows_warning_with_missing_required_keys_taxi_configuration()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        $files = Mockery::mock(Filesystem::class)->makePartial();
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Bad/missing-required'));
+
+        swap(Filesystem::class, $files);
+
+        $tester->run(['command' => 'build']);
+
+        $tester->assertCommandIsSuccessful();
+        $this->assertStringContainsString('The required properties (hooks) are missing', $tester->getDisplay());
     }
 
     public function test_reset_command_shows_warning_without_taxi_configuration()

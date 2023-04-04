@@ -30,8 +30,12 @@ class BaseApplicationTestCase extends TestCase
         require_once __DIR__.'/../cli/includes/helpers.php';
         Container::setInstance(new Container); // Reset app container from previous tests
 
-        if (Filesystem::isDir(TAXI_HOME_PATH)) {  // uses Valet facade instance of Filesystem
-            Filesystem::rmDirAndContents(TAXI_HOME_PATH);
+        $scratchDir = realpath(TAXI_HOME_PATH.'/Scratch');
+        if (Filesystem::isDir($scratchDir)) {
+            Filesystem::rmDirAndContents($scratchDir);
+        }
+        if (Filesystem::isDir(VALET_HOME_PATH)) {
+            Filesystem::rmDirAndContents(VALET_HOME_PATH);
         }
 
         Configuration::createConfigurationDirectory();
