@@ -144,7 +144,7 @@ class Taxi
         if (array_key_exists('post-build', $site)) {
             info('  Running post-build commands');
 
-            $this->runCommandsInDirectory($this->taxiConfig['post-build'], $root);
+            $this->runCommandsInDirectory($site['post-build'], $root);
         }
 
         info($site['name'].' build completed');
@@ -232,7 +232,7 @@ class Taxi
         );
 
         if ($this->isTaxiConfigValid($config)) {
-            $this->taxiConfig = json_decode($config, false);
+            $this->taxiConfig = json_decode($config, true);
         }
     }
 
@@ -257,7 +257,7 @@ class Taxi
     /**
      * @throws InvalidConfiguration
      */
-    public function isTaxiConfigValid(string $config): bool
+    public function isTaxiConfigValid(string $config): string
     {
         $validator = new Validator();
 
@@ -265,7 +265,7 @@ class Taxi
         $result = $validator->validate(json_decode($config), $this->files->getTaxiStub('schema.json'));
 
         if ($result->isValid()) {
-            return true;
+            return $config;
         }
 
         $errors = (new ErrorFormatter())->formatFlat($result->error());
