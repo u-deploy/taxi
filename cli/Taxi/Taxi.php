@@ -166,18 +166,19 @@ class Taxi
 
     public function resetSite(array $site, string $root): array
     {
+        info('Resetting repository: '.$site['name']);
         // check to see if a git checkout is required
         $this->resetToDefaultBranch($site, $root);
 
         // run global install hooks
-        info('Running reset commands');
+        info(' Running reset commands');
         $this->runCommandsInDirectory($this->taxiConfig['hooks']['reset'], $root);
 
         // run site reset hooks
-        info('Running post-reset commands');
-        $this->runCommandsInDirectory($this->taxiConfig['post-reset'], $root);
+        info(' Running post-reset commands');
+        $this->runCommandsInDirectory($site['post-reset'], $root);
 
-        info('Site: '.$site['name'].' installed');
+        info('Site: '.$site['name'].' reset');
 
         return $site;
     }
@@ -196,7 +197,7 @@ class Taxi
 
         $response = $this->cli->path($root)->runAsUser('git stash && git checkout '.$site['branch']);
 
-        $action = 'branch changed';
+        $action = ' Branch changed';
 
         if (str_contains($response, 'No local changes to save')) {
             $action .= ' and stash created '.

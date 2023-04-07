@@ -138,7 +138,7 @@ class CliTest extends BaseApplicationTestCase
             'npm run production',
             'composer install',
             'cp .env.example .env',
-            'php artisan key:generate'
+            'php artisan key:generate',
         ])->each(fn ($command) => $cli->shouldReceive('path->runAsUser')
             ->ordered()
             ->with($command)
@@ -171,6 +171,43 @@ Taxi build successful!
 
         $tester->assertCommandIsSuccessful();
         $this->assertStringContainsString('No taxi.json file found', $tester->getDisplay());
+    }
+
+    public function test_reset_command_runs_expected_commands_for_taxi_configuration()
+    {
+        [$app, $tester] = $this->appAndTester();
+        $testDirectory = realpath(TAXI_HOME_PATH.'/Parked/Sites/Single/single-taxi-site');
+        $files = Mockery::mock(Filesystem::class)->makePartial();
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn($testDirectory);
+
+        $cli = Mockery::mock(CommandLine::class);
+
+        collect([
+            'git stash && git checkout main',
+            'rm -rf vendor && rm composer.lock',
+            'composer install',
+            'npm run production',
+            'php artisan key:generate',
+        ])->each(fn ($command) => $cli->shouldReceive('path->runAsUser')
+            ->ordered()
+            ->with($command)
+            ->once()
+        );
+
+        swap(Filesystem::class, $files);
+        swap(CommandLine::class, $cli);
+
+        $tester->run(['command' => 'reset']);
+
+        $tester->assertCommandIsSuccessful();
+
+        $this->assertEquals('Resetting repository: laravel-single
+ Branch changed
+ Running reset commands
+ Running post-reset commands
+Site: laravel-single reset
+Taxi reset successful!
+', $tester->getDisplay());
     }
 
     public function test_trust_command_is_successful()
