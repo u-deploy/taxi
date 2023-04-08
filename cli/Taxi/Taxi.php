@@ -70,7 +70,7 @@ class Taxi
         $contents = $this->getCallContents($url);
 
         $this->files->putAsUser(
-            getcwd().'/taxi.json',
+            $this->files->cwd().'/taxi.json',
             $contents
         );
 
@@ -92,10 +92,10 @@ class Taxi
     public function build()
     {
         // maintain known root folder
-        $root = getcwd();
+        $root = $this->files->cwd();
 
         // get te configuration / throw exception on bad file
-        $this->loadTaxiConfig();
+        $this->loadTaxiConfig($root);
 
         // loop through vcs and build sites
         collect($this->taxiConfig['sites'])->each(fn ($site) => $this->buildSite($site, $root));
@@ -144,7 +144,7 @@ class Taxi
         if (array_key_exists('post-build', $site)) {
             info('  Running post-build commands');
 
-            $this->runCommandsInDirectory($this->taxiConfig['post-build'], $root);
+            $this->runCommandsInDirectory($site['post-build'], $root);
         }
 
         info($site['name'].' build completed');
@@ -157,7 +157,7 @@ class Taxi
      */
     public function reset()
     {
-        $root = getcwd();
+        $root = $this->files->cwd();
 
         $this->loadTaxiConfig();
 
@@ -166,18 +166,19 @@ class Taxi
 
     public function resetSite(array $site, string $root): array
     {
+        info('Resetting repository: '.$site['name']);
         // check to see if a git checkout is required
         $this->resetToDefaultBranch($site, $root);
 
         // run global install hooks
-        info('Running reset commands');
+        info(' Running reset commands');
         $this->runCommandsInDirectory($this->taxiConfig['hooks']['reset'], $root);
 
         // run site reset hooks
-        info('Running post-reset commands');
-        $this->runCommandsInDirectory($this->taxiConfig['post-reset'], $root);
+        info(' Running post-reset commands');
+        $this->runCommandsInDirectory($site['post-reset'], $root);
 
-        info('Site: '.$site['name'].' installed');
+        info('Site: '.$site['name'].' reset');
 
         return $site;
     }
@@ -196,7 +197,7 @@ class Taxi
 
         $response = $this->cli->path($root)->runAsUser('git stash && git checkout '.$site['branch']);
 
-        $action = 'branch changed';
+        $action = ' Branch changed';
 
         if (str_contains($response, 'No local changes to save')) {
             $action .= ' and stash created '.
@@ -231,7 +232,7 @@ class Taxi
             $this->taxiConfigPath()
         );
 
-        if ($this->isTaxiConfigValid()) {
+        if ($this->isTaxiConfigValid($config)) {
             $this->taxiConfig = json_decode($config, true);
         }
     }
@@ -257,20 +258,21 @@ class Taxi
     /**
      * @throws InvalidConfiguration
      */
-    public function isTaxiConfigValid(): bool
+    public function isTaxiConfigValid(string $config): string
     {
         $validator = new Validator();
 
         /** @var ValidationResult $result */
-        $result = $validator->validate($this->taxiConfig, $this->files->getStubPath('schema.json'));
+        $result = $validator->validate(json_decode($config), $this->files->getTaxiStub('schema.json'));
 
         if ($result->isValid()) {
-            return true;
+            return $config;
         }
 
+        $errors = (new ErrorFormatter())->formatFlat($result->error());
         // throw exception and populate message based on validation errors
         throw new InvalidConfiguration(
-            implode(PHP_EOL, (new ErrorFormatter())->format($result->error()))
+            implode(PHP_EOL, $errors)
         );
     }
 }

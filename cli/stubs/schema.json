@@ -37,12 +37,14 @@
                                 "type": "string"
                             }
                         }
-                    }
+                    },
+                    "required": ["name", "branch", "vcs"]
                 }
             }
         },
         "hooks": {
             "type": "object",
+            "required": ["build", "reset"],
             "properties": {
                 "build": {
                     "type": "array",
@@ -58,5 +60,6 @@
                 }
             }
         }
-    }
+    },
+    "required": ["sites", "hooks"]
 }
