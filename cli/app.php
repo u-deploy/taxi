@@ -30,7 +30,7 @@ if (file_exists(__DIR__.'/../vendor/autoload.php')) {
  */
 Container::setInstance(new Container);
 
-$app = new Application('UDeploy Taxi', $version);
+$app = new Application('uDeploy Taxi', $version);
 
 $app->setDispatcher($dispatcher = new EventDispatcher());
 
