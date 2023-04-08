@@ -55,4 +55,4 @@ List all Laravel Valet sites, including if used their taxi.json configuration fi
 
 ## License
 
-UDeploy Taxi is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+uDeploy Taxi is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
