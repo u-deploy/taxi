@@ -1,5 +1,7 @@
 # Taxi
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/u-deploy/taxi.svg?style=flat-square)](https://packagist.org/packages/u-deploy/taxi)
+[![Total Downloads](https://img.shields.io/packagist/dt/u-deploy/taxi.svg?style=flat-square)](https://packagist.org/packages/u-deploy/taxi)
 ## Introduction
 
 A multi-site manager for Laravel Valet. Easily manage local deployments of multiple web applications, 
