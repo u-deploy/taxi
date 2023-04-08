@@ -101,6 +101,15 @@ $app->command('trust [--off]', function (OutputInterface $output, $off) {
 ]);
 
 /**
+ * Install Taxi and any required services.
+ */
+$app->command('uninstall', function (OutputInterface $output) {
+    Taxi::removeSudoersEntry();
+    Taxi::unlinkFromUsersBin();
+    info('<info>Taxi uninstalled successfully!</info>');
+})->descriptions('Uninstall Taxi');
+
+/**
  * List sites in Valet + add Taxi state
  */
 $app->command('valet', function (OutputInterface $output) {

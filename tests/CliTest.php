@@ -127,6 +127,21 @@ class CliTest extends BaseApplicationTestCase
         $tester->assertCommandIsSuccessful();
     }
 
+    public function test_uninstall_command()
+    {
+        [$app, $tester] = $this->appAndTester();
+
+        $cli = Mockery::mock(CommandLine::class);
+        $cli->shouldReceive('quietly')->once()->with('rm /etc/sudoers.d/taxi');
+        $cli->shouldReceive('quietlyAsUser')->once()->with('rm '.BREW_PREFIX.'/bin/taxi');
+
+        swap(CommandLine::class, $cli);
+
+        $tester->run(['command' => 'uninstall']);
+
+        $tester->assertCommandIsSuccessful();
+    }
+
     public function test_valet_command()
     {
         [$app, $tester] = $this->appAndTester();
