@@ -2,7 +2,7 @@
 
 namespace Taxi;
 
-use Filesystem;
+use TaxiFileSystem;
 use function Valet\testing;
 
 if (! defined('TAXI_HOME_PATH')) {
@@ -15,9 +15,9 @@ if (! defined('TAXI_HOME_PATH')) {
 
 function git_branch(string $sitePath): string
 {
-    if (! Filesystem::exists($sitePath.'/.git/HEAD')) {
+    if (! TaxiFileSystem::isGitEnabled($sitePath)) {
         return '';
     }
 
-    return implode('/', array_slice(explode('/', Filesystem::get($sitePath.'/.git/HEAD')), 2));
+    return implode('/', array_slice(explode('/', TaxiFileSystem::getGitHead($sitePath)), 2));
 }

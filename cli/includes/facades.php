@@ -11,3 +11,11 @@ class TaxiFacade extends Facade
 class Taxi extends TaxiFacade
 {
 }
+
+class TaxiFileSystem extends Facade
+{
+    public static function containerKey(): string
+    {
+        return 'UDeploy\\Taxi\\Filesystem';
+    }
+}

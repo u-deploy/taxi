@@ -10,14 +10,13 @@ class Site
 {
     public function __construct(
         public CommandLine $cli,
-        protected string   $root,
-        protected array    $attributes = [],
-        protected array    $buildCommands = [],
-        protected array    $resetCommands = []
-    )
-    {
+        protected string $root,
+        protected array $attributes = [],
+        protected array $buildCommands = [],
+        protected array $resetCommands = []
+    ) {
         $this->folder = Str::kebab($this->name);
-        $this->path = $this->root . '/' . $this->folder;
+        $this->path = $this->root.'/'.$this->folder;
     }
 
     public function build(): static
@@ -25,7 +24,7 @@ class Site
         return $this->cloneRepository()
             ->valetLink()
             ->isolatePhpVersion()
-            ->gitBranch()
+            ->gitCheckoutDefaultBranch()
             ->valetSecure()
             ->runBuildCommands()
             ->runSiteBuildCommands()
@@ -34,33 +33,30 @@ class Site
 
     public function reset(): static
     {
-        info('Resetting repository: ' . $this->name);
+        info('Resetting repository: '.$this->name);
         // check to see if a git checkout is required
         return $this->resetToDefaultBranch()
             ->runResetCommands()
             ->runSiteResetCommands()
             ->resetComplete();
-
     }
 
     public function resetComplete(): static
     {
-
-        info('Site: ' . $this->name . ' reset');
+        info('Site: '.$this->name.' reset');
 
         return $this;
     }
 
     protected function resetToDefaultBranch(): static
     {
-
-        if ($this->isDefaultBranch()) {
-            info('No change to ' . $this->name . PHP_EOL);
+        if ($this->isNotDefaultBranch()) {
+            info('No change to '.$this->name.PHP_EOL);
 
             return $this;
         }
 
-        $response = $this->cli->path($this->path)->runAsUser('git stash && git checkout ' . $this->branch);
+        $response = $this->cli->path($this->path)->runAsUser('git stash && git checkout '.$this->branch);
 
         info($this->getGitBranchChangeInformationAsFormattedString($response));
 
@@ -72,7 +68,7 @@ class Site
         $action = ' Branch changed';
 
         if (str_contains($response, 'No local changes to save')) {
-            $action .= ' and stash created ' .
+            $action .= ' and stash created '.
                 Str::after(
                     explode(PHP_EOL, $response)[0],
                     'Saved working directory and index state '
@@ -94,7 +90,7 @@ class Site
     {
         $commands = $this->get('post-reset');
         // run site build hooks
-        if (!empty($commands)) {
+        if (! empty($commands)) {
             info('  Running post-reset commands');
 
             $this->runCommandsInDirectory($commands);
@@ -105,39 +101,39 @@ class Site
 
     public function buildComplete(): static
     {
-        info($this->name . ' build completed');
+        info($this->name.' build completed');
 
         return $this;
     }
 
     public function cloneRepository(): static
     {
-        info('Cloning repository: ' . $this->name);
+        info('Cloning repository: '.$this->name);
 
-        $this->cli->path($this->root)->runAsUser('git clone ' . $this->vcs . ' ' . $this->folder);
+        $this->cli->path($this->root)->runAsUser('git clone '.$this->vcs.' '.$this->folder);
 
         return $this;
     }
 
-    public function gitBranch(): static
+    public function gitCheckoutDefaultBranch(): static
     {
-        if ($this->isDefaultBranch()) {
+        if ($this->isNotDefaultBranch()) {
             // ensure on default branch
-            $this->cli->path($this->path)->runAsUser('git checkout ' . $this->branch);
+            $this->cli->path($this->path)->runAsUser('git checkout '.$this->branch);
         }
 
         return $this;
     }
 
-    public function isDefaultBranch(): bool
+    public function isNotDefaultBranch(): bool
     {
-        return git_branch($this->path) === $this->branch;
+        return git_branch($this->path) !== $this->branch;
     }
 
     public function valetLink(): static
     {
         // Link to valet
-        $this->cli->path($this->path)->runAsUser('valet link ' . $this->folder);
+        $this->cli->path($this->path)->runAsUser('valet link '.$this->folder);
 
         return $this;
     }
@@ -147,7 +143,7 @@ class Site
         // isolate PHP version
         if ($this->has('php')) {
             info('  Isolating PHP version for site');
-            $this->cli->path($this->path)->runAsUser('valet isolate ' . $this->php);
+            $this->cli->path($this->path)->runAsUser('valet isolate '.$this->php);
         }
 
         return $this;
@@ -167,7 +163,7 @@ class Site
     public function runBuildCommands(): static
     {
         // run global build hooks
-        if (!empty($this->buildCommands)) {
+        if (! empty($this->buildCommands)) {
             info('  Running build commands');
             $this->runCommandsInDirectory($this->buildCommands);
         }
@@ -179,7 +175,7 @@ class Site
     {
         $commands = $this->get('post-build');
         // run site build hooks
-        if (!empty($commands)) {
+        if (! empty($commands)) {
             info('  Running post-build commands');
 
             $this->runCommandsInDirectory($commands);
@@ -191,7 +187,7 @@ class Site
     protected function runCommandsInDirectory(array $commands): void
     {
         collect($commands)
-            ->each(fn($hook) => $this->cli->path($this->path)->runAsUser($hook));
+            ->each(fn ($hook) => $this->cli->path($this->path)->runAsUser($hook));
     }
 
     public function get($property): mixed
@@ -199,6 +195,7 @@ class Site
         if ($this->has($property)) {
             return $this->attributes[$property];
         }
+
         return null;
     }
 

@@ -3,19 +3,16 @@
 namespace UDeploy\Taxi;
 
 use GuzzleHttp\Client;
-use Illuminate\Support\Str;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
-use function Taxi\git_branch;
 use UDeploy\Taxi\Exceptions\ConfigurationMissing;
 use UDeploy\Taxi\Exceptions\InvalidConfiguration;
-use function Valet\info;
 use function Valet\warning;
 
 class Taxi
 {
-    public $taxiBin = BREW_PREFIX . '/bin/taxi';
+    public $taxiBin = BREW_PREFIX.'/bin/taxi';
 
     protected array $taxiConfig = [];
 
@@ -31,7 +28,7 @@ class Taxi
     {
         $this->unlinkFromUsersBin();
 
-        $this->cli->runAsUser('ln -s "' . realpath(__DIR__ . '/../../taxi') . '" ' . $this->taxiBin);
+        $this->cli->runAsUser('ln -s "'.realpath(__DIR__.'/../../taxi').'" '.$this->taxiBin);
     }
 
     /**
@@ -39,7 +36,7 @@ class Taxi
      */
     public function unlinkFromUsersBin(): void
     {
-        $this->cli->quietlyAsUser('rm ' . $this->taxiBin);
+        $this->cli->quietlyAsUser('rm '.$this->taxiBin);
     }
 
     /**
@@ -49,8 +46,8 @@ class Taxi
     {
         $this->files->ensureDirExists('/etc/sudoers.d');
 
-        $this->files->put('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = ' . BREW_PREFIX . '/bin/taxi *
-        %admin ALL=(root) NOPASSWD:SETENV: TAXI' . PHP_EOL);
+        $this->files->put('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = '.BREW_PREFIX.'/bin/taxi *
+        %admin ALL=(root) NOPASSWD:SETENV: TAXI'.PHP_EOL);
     }
 
     /**
@@ -63,14 +60,14 @@ class Taxi
 
     public function call(?string $url = null): ?bool
     {
-        if (!is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
+        if (! is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
             return warning('Invalid url');
         }
 
         $contents = $this->getCallContents($url);
 
         $this->files->putAsUser(
-            $this->files->cwd() . '/taxi.json',
+            $this->files->cwd().'/taxi.json',
             $contents
         );
 
@@ -83,7 +80,7 @@ class Taxi
             return $this->files->getTaxiStub('taxi.json');
         }
 
-        return (string)$this->client->get($url)->getBody();
+        return (string) $this->client->get($url)->getBody();
     }
 
     /**
@@ -99,7 +96,7 @@ class Taxi
 
         // loop through vcs and build sites
         collect($this->taxiConfig['sites'])
-            ->each(fn($site) => (new Site(
+            ->each(fn ($site) => (new Site(
                 cli: $this->cli,
                 root: $root,
                 attributes: $site,
@@ -130,7 +127,7 @@ class Taxi
         $this->loadTaxiConfig();
 
         collect($this->taxiConfig['sites'])
-            ->each(fn($site) => (new Site(
+            ->each(fn ($site) => (new Site(
                 cli: $this->cli,
                 root: $root,
                 attributes: $site,
@@ -141,14 +138,13 @@ class Taxi
             );
     }
 
-
     /**
      * @throws ConfigurationMissing
      * @throws InvalidConfiguration
      */
     public function loadTaxiConfig(): void
     {
-        if (!$this->taxiConfigExists()) {
+        if (! $this->taxiConfigExists()) {
             throw new ConfigurationMissing;
         }
 
@@ -176,7 +172,7 @@ class Taxi
      */
     public function taxiConfigPath(): string
     {
-        return $this->files->cwd() . '/taxi.json';
+        return $this->files->cwd().'/taxi.json';
     }
 
     /**

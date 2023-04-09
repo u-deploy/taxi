@@ -26,4 +26,14 @@ class Filesystem extends ValetFilesystem
     {
         return getcwd();
     }
+
+    public function getGitHead($sitePath): string
+    {
+        return $this->get($sitePath.'/.git/HEAD');
+    }
+
+    public function isGitEnabled($sitePath): bool
+    {
+        return $this->exists($sitePath.'/.git/HEAD');
+    }
 }
