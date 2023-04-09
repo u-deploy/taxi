@@ -132,7 +132,6 @@ class CliTest extends BaseApplicationTestCase
             'git clone https://github.com/laravel/laravel laravel-single',
             'valet link laravel-single',
             'valet isolate php@8.1',
-            'git checkout main',
             'valet secure',
             'npm install',
             'npm run production',
@@ -158,7 +157,6 @@ class CliTest extends BaseApplicationTestCase
   Running build commands
   Running post-build commands
 laravel-single build completed
-build completed
 Taxi build successful!
 ', $tester->getDisplay());
     }
@@ -204,7 +202,7 @@ Taxi build successful!
         $this->assertEquals('Resetting repository: laravel-single
  Branch changed
  Running reset commands
- Running post-reset commands
+  Running post-reset commands
 Site: laravel-single reset
 Taxi reset successful!
 ', $tester->getDisplay());

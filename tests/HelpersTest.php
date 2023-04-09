@@ -23,7 +23,6 @@ class HelpersTest extends BaseApplicationTestCase
         $response = git_branch(__DIR__.'/fixtures/Scratch');
 
         $this->assertEquals($branch, $response);
-
     }
 
     public function branches()

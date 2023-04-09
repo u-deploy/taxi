@@ -15,7 +15,7 @@ use function Valet\warning;
 
 class Taxi
 {
-    public $taxiBin = BREW_PREFIX.'/bin/taxi';
+    public $taxiBin = BREW_PREFIX . '/bin/taxi';
 
     protected array $taxiConfig = [];
 
@@ -31,7 +31,7 @@ class Taxi
     {
         $this->unlinkFromUsersBin();
 
-        $this->cli->runAsUser('ln -s "'.realpath(__DIR__.'/../../taxi').'" '.$this->taxiBin);
+        $this->cli->runAsUser('ln -s "' . realpath(__DIR__ . '/../../taxi') . '" ' . $this->taxiBin);
     }
 
     /**
@@ -39,7 +39,7 @@ class Taxi
      */
     public function unlinkFromUsersBin(): void
     {
-        $this->cli->quietlyAsUser('rm '.$this->taxiBin);
+        $this->cli->quietlyAsUser('rm ' . $this->taxiBin);
     }
 
     /**
@@ -49,8 +49,8 @@ class Taxi
     {
         $this->files->ensureDirExists('/etc/sudoers.d');
 
-        $this->files->put('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = '.BREW_PREFIX.'/bin/taxi *
-        %admin ALL=(root) NOPASSWD:SETENV: TAXI'.PHP_EOL);
+        $this->files->put('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = ' . BREW_PREFIX . '/bin/taxi *
+        %admin ALL=(root) NOPASSWD:SETENV: TAXI' . PHP_EOL);
     }
 
     /**
@@ -63,14 +63,14 @@ class Taxi
 
     public function call(?string $url = null): ?bool
     {
-        if (! is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
+        if (!is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
             return warning('Invalid url');
         }
 
         $contents = $this->getCallContents($url);
 
         $this->files->putAsUser(
-            $this->files->cwd().'/taxi.json',
+            $this->files->cwd() . '/taxi.json',
             $contents
         );
 
@@ -83,7 +83,7 @@ class Taxi
             return $this->files->getTaxiStub('taxi.json');
         }
 
-        return (string) $this->client->get($url)->getBody();
+        return (string)$this->client->get($url)->getBody();
     }
 
     /**
@@ -95,61 +95,29 @@ class Taxi
         $root = $this->files->cwd();
 
         // get te configuration / throw exception on bad file
-        $this->loadTaxiConfig($root);
+        $this->loadTaxiConfig();
 
         // loop through vcs and build sites
-        collect($this->taxiConfig['sites'])->each(fn ($site) => $this->buildSite($site, $root));
-
-        info('build completed');
+        collect($this->taxiConfig['sites'])
+            ->each(fn($site) => (new Site(
+                cli: $this->cli,
+                root: $root,
+                attributes: $site,
+                buildCommands: $this->getBuildCommands(),
+                resetCommands: $this->getResetCommands()
+            ))
+                ->build()
+            );
     }
 
-    public function buildSite(array $site, string $root): array
+    protected function getBuildCommands(): array
     {
-        $folder = Str::kebab($site['name']);
-        $path = $root.'/'.$folder;
-        // ensure start at root folder where config is
-        info('Cloning repository: '.$site['name']);
+        return $this->taxiConfig['hooks']['build'] ?? [];
+    }
 
-        // TODO add checks to make sure folder is clear
-        $this->cli->path($root)->runAsUser('git clone '.$site['vcs'].' '.$folder);
-
-        // Link to valet
-        $this->cli->path($path)->runAsUser('valet link '.$folder);
-
-        // isolate PHP version
-        if (array_key_exists('php', $site)) {
-            info('  Isolating PHP version for site');
-            $this->cli->path($path)->runAsUser('valet isolate '.$site['php']);
-        }
-
-        $currentBranch = git_branch($path);
-        if ($currentBranch !== $site['branch']) {
-            // ensure on default branch
-            $this->cli->path($path)->runAsUser('git checkout '.$site['branch']);
-        }
-
-        // enable valet secure
-        if (array_key_exists('secure', $site) && $site['secure'] === true) {
-            info('  Securing valet site');
-            $this->cli->path($path)->runAsUser('valet secure');
-        }
-
-        // run global build hooks
-        if (array_key_exists('hooks', $this->taxiConfig) && array_key_exists('build', $this->taxiConfig['hooks'])) {
-            info('  Running build commands');
-            $this->runCommandsInDirectory($this->taxiConfig['hooks']['build'], $root);
-        }
-
-        // run site build hooks
-        if (array_key_exists('post-build', $site)) {
-            info('  Running post-build commands');
-
-            $this->runCommandsInDirectory($site['post-build'], $root);
-        }
-
-        info($site['name'].' build completed');
-
-        return $site;
+    protected function getResetCommands(): array
+    {
+        return $this->taxiConfig['hooks']['reset'] ?? [];
     }
 
     /**
@@ -161,62 +129,18 @@ class Taxi
 
         $this->loadTaxiConfig();
 
-        collect($this->taxiConfig['sites'])->each(fn ($site) => $this->resetSite($site, $root));
+        collect($this->taxiConfig['sites'])
+            ->each(fn($site) => (new Site(
+                cli: $this->cli,
+                root: $root,
+                attributes: $site,
+                buildCommands: $this->getBuildCommands(),
+                resetCommands: $this->getResetCommands()
+            ))
+                ->reset()
+            );
     }
 
-    public function resetSite(array $site, string $root): array
-    {
-        info('Resetting repository: '.$site['name']);
-        // check to see if a git checkout is required
-        $this->resetToDefaultBranch($site, $root);
-
-        // run global install hooks
-        info(' Running reset commands');
-        $this->runCommandsInDirectory($this->taxiConfig['hooks']['reset'], $root);
-
-        // run site reset hooks
-        info(' Running post-reset commands');
-        $this->runCommandsInDirectory($site['post-reset'], $root);
-
-        info('Site: '.$site['name'].' reset');
-
-        return $site;
-    }
-
-    protected function resetToDefaultBranch(array $site, string $root): array
-    {
-        $folder = Str::kebab($site['name']);
-        $path = $root.'/'.$folder;
-
-        $currentBranch = git_branch($path);
-        if ($currentBranch === $site['branch']) {
-            info('No change to '.$site['name'].PHP_EOL);
-
-            return $site;
-        }
-
-        $response = $this->cli->path($root)->runAsUser('git stash && git checkout '.$site['branch']);
-
-        $action = ' Branch changed';
-
-        if (str_contains($response, 'No local changes to save')) {
-            $action .= ' and stash created '.
-                Str::after(
-                    explode(PHP_EOL, $response)[0],
-                    'Saved working directory and index state '
-                );
-        }
-
-        info($action);
-
-        return $site;
-    }
-
-    protected function runCommandsInDirectory(array $commands, string $path): void
-    {
-        collect($commands)
-            ->each(fn ($hook) => $this->cli->path($path)->runAsUser($hook));
-    }
 
     /**
      * @throws ConfigurationMissing
@@ -224,7 +148,7 @@ class Taxi
      */
     public function loadTaxiConfig(): void
     {
-        if (! $this->taxiConfigExists()) {
+        if (!$this->taxiConfigExists()) {
             throw new ConfigurationMissing;
         }
 
@@ -252,7 +176,7 @@ class Taxi
      */
     public function taxiConfigPath(): string
     {
-        return $this->files->cwd().'/taxi.json';
+        return $this->files->cwd() . '/taxi.json';
     }
 
     /**
