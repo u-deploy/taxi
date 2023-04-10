@@ -23,6 +23,7 @@ class SiteConfig
 
     /**
      * Detect the environment. Defaults to production.
+     *
      * @return string
      */
     private function getEnvironment()
@@ -41,13 +42,25 @@ class SiteConfig
     private function setupPaths()
     {
         $this->paths['env_file_path'] = $this->path;
-        $this->paths['env_file'] = $this->paths['env_file_path'] . '/.env';
-        $this->paths['config_path'] = $this->path . '/config';
+        $this->paths['env_file'] = $this->paths['env_file_path'].'/.env';
+
+        if ($this->hasCachedConfig()) {
+            $this->paths['config_path'] = $this->path.'/bootstrap/cache/config.php';
+
+            return;
+        }
+        $this->paths['config_path'] = $this->path.'/config';
+    }
+
+    private function hasCachedConfig(): bool
+    {
+        return TaxiFileSystem::isDir($this->path.'/bootstrap/cache') &&
+            TaxiFileSystem::exists($this->path.'/bootstrap/cache/config.php');
     }
 
     public function __call($method, $params)
     {
-        if(method_exists($this->config, $method)) {
+        if (method_exists($this->config, $method)) {
             return $this->config->$method(...$params);
         }
 

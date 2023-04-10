@@ -7,7 +7,7 @@ class SiteTest extends BaseApplicationTestCase
     public function test_get_property_returns_null()
     {
         $site = new Site(
-            __DIR__ . '/fixtures/Scratch',
+            __DIR__.'/fixtures/Scratch',
             [
                 'name' => 'test',
             ]
@@ -19,7 +19,7 @@ class SiteTest extends BaseApplicationTestCase
     public function test_site_can_read_config()
     {
         $site = new Site(
-            __DIR__ . '/fixtures/Parked/Sites/Config/config-site',
+            __DIR__.'/fixtures/Parked/Sites/Config/config-site',
             [
                 'name' => 'laravel-config',
             ]
@@ -27,14 +27,28 @@ class SiteTest extends BaseApplicationTestCase
 
         $this->assertEquals(
             'taxt-config-test',
-            $site->config()->get('app.name','default')
+            $site->config()->get('app.name', 'default')
         );
 
         $this->assertEquals(
             'testing',
-            $site->config()->get('app.version','default')
+            $site->config()->get('app.version', 'default')
         );
 
+    }
 
+    public function test_site_can_read_cached_config()
+    {
+        $site = new Site(
+            __DIR__.'/fixtures/Parked/Sites/Config/cached-config',
+            [
+                'name' => 'laravel-config',
+            ]
+        );
+
+        $this->assertEquals(
+            'Cached Name',
+            $site->config()->get('app.name', 'default')
+        );
     }
 }

@@ -10,6 +10,7 @@ class Filesystem extends ValetFilesystem
     {
         return is_file($file);
     }
+
     /**
      * Get custom stub file if exists.
      */

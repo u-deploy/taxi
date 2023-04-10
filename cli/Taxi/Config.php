@@ -3,6 +3,7 @@
 namespace UDeploy\Taxi;
 
 use Illuminate\Config\Repository;
+use Illuminate\Support\Str;
 use Symfony\Component\Finder\Finder;
 
 class Config extends Repository
@@ -18,13 +19,24 @@ class Config extends Repository
             $this->set($fileKey, require $path);
         }
 
+        if (Str::endsWith($path, '/bootstrap/cache/config.php')) {
+            $this->items = require $path;
+
+            return;
+        }
+
         foreach ($this->getConfigurationFiles($environment) as $fileKey => $path) {
             $envConfig = require $path;
 
             foreach ($envConfig as $envKey => $value) {
-                $this->set($fileKey . '.' . $envKey, $value);
+                $this->set($fileKey.'.'.$envKey, $value);
             }
         }
+    }
+
+    protected function getCachedConfigurationFile(?string $environment)
+    {
+
     }
 
     /**
@@ -35,10 +47,10 @@ class Config extends Repository
         $path = $this->configPath;
 
         if ($environment) {
-            $path .= '/' . $environment;
+            $path .= '/'.$environment;
         }
 
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return [];
         }
 

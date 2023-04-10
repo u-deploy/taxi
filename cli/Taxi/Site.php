@@ -3,9 +3,9 @@
 namespace UDeploy\Taxi;
 
 use Illuminate\Support\Str;
-use TaxiFileSystem;
 use function Taxi\git_branch;
 use function Taxi\make;
+use TaxiFileSystem;
 use function Valet\info;
 
 class Site
@@ -26,9 +26,9 @@ class Site
 
     public function config(): ?SiteConfig
     {
-        if(is_null($this->config) && TaxiFileSystem::isDir($this->path)) {
+        if (is_null($this->config) && TaxiFileSystem::isDir($this->path)) {
             $this->config = make(SiteConfig::class, [
-                'path' => $this->path
+                'path' => $this->path,
             ]);
         }
 

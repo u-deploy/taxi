@@ -14,10 +14,10 @@ if (! defined('TAXI_HOME_PATH')) {
     }
 }
 
-if(!function_exists('git_branch')) {
+if (! function_exists('git_branch')) {
     function git_branch(string $sitePath): string
     {
-        if (!TaxiFileSystem::isGitEnabled($sitePath)) {
+        if (! TaxiFileSystem::isGitEnabled($sitePath)) {
             return '';
         }
 
@@ -25,7 +25,7 @@ if(!function_exists('git_branch')) {
     }
 }
 
-if(!function_exists('make')) {
+if (! function_exists('make')) {
     function make(string $class, array $parameters = []): mixed
     {
         return Container::getInstance()->make($class, $parameters);
