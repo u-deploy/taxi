@@ -6,6 +6,10 @@ use Valet\Filesystem as ValetFilesystem;
 
 class Filesystem extends ValetFilesystem
 {
+    public function isFile($file): bool
+    {
+        return is_file($file);
+    }
     /**
      * Get custom stub file if exists.
      */

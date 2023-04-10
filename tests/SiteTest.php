@@ -15,4 +15,26 @@ class SiteTest extends BaseApplicationTestCase
 
         $this->assertNull($site->get('random'));
     }
+
+    public function test_site_can_read_config()
+    {
+        $site = new Site(
+            __DIR__ . '/fixtures/Parked/Sites/Config/config-site',
+            [
+                'name' => 'laravel-config',
+            ]
+        );
+
+        $this->assertEquals(
+            'taxt-config-test',
+            $site->config()->get('app.name','default')
+        );
+
+        $this->assertEquals(
+            'testing',
+            $site->config()->get('app.version','default')
+        );
+
+
+    }
 }

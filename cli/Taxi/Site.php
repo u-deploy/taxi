@@ -2,13 +2,16 @@
 
 namespace UDeploy\Taxi;
 
-use Illuminate\Container\Container;
 use Illuminate\Support\Str;
+use TaxiFileSystem;
 use function Taxi\git_branch;
+use function Taxi\make;
 use function Valet\info;
 
 class Site
 {
+    protected ?SiteConfig $config = null;
+
     public function __construct(
         protected string $root,
         protected array $attributes = [],
@@ -18,7 +21,18 @@ class Site
         $this->folder = Str::kebab($this->name);
         $this->path = $this->root.'/'.$this->folder;
 
-        $this->cli = Container::getInstance()->make(CommandLine::class);
+        $this->cli = make(CommandLine::class);
+    }
+
+    public function config(): ?SiteConfig
+    {
+        if(is_null($this->config) && TaxiFileSystem::isDir($this->path)) {
+            $this->config = make(SiteConfig::class, [
+                'path' => $this->path
+            ]);
+        }
+
+        return $this->config;
     }
 
     public function build(): static
