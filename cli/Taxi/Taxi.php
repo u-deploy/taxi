@@ -97,7 +97,6 @@ class Taxi
         // loop through vcs and build sites
         collect($this->taxiConfig['sites'])
             ->each(fn ($site) => (new Site(
-                cli: $this->cli,
                 root: $root,
                 attributes: $site,
                 buildCommands: $this->getBuildCommands(),
@@ -128,7 +127,6 @@ class Taxi
 
         collect($this->taxiConfig['sites'])
             ->each(fn ($site) => (new Site(
-                cli: $this->cli,
                 root: $root,
                 attributes: $site,
                 buildCommands: $this->getBuildCommands(),

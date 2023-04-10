@@ -1,7 +1,7 @@
 <?php
 
 use function Taxi\git_branch;
-use Valet\Filesystem;
+use UDeploy\Taxi\Filesystem;
 use function Valet\swap;
 
 class HelpersTest extends BaseApplicationTestCase
@@ -13,10 +13,9 @@ class HelpersTest extends BaseApplicationTestCase
     {
         [$app, $tester] = $this->appAndTester();
 
-        $filesystem = Mockery::mock(Filesystem::class)->makePartial();
-        $filesystem->shouldReceive('exists')->andReturnTrue();
-        $filesystem->shouldReceive('isDir')->with(__DIR__.'/fixtures/Scratch')->andReturn(true);
-        $filesystem->shouldReceive('get')->with(__DIR__.'/fixtures/Scratch/.git/HEAD')->andReturn('ref: refs/heads/'.$branch);
+        $filesystem = Mockery::mock(Filesystem::class);
+        $filesystem->shouldReceive('isGitEnabled')->andReturnTrue();
+        $filesystem->shouldReceive('getGitHead')->with(__DIR__.'/fixtures/Scratch')->andReturn('ref: refs/heads/'.$branch);
 
         swap(Filesystem::class, $filesystem);
 

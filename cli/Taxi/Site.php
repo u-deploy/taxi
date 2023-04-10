@@ -2,6 +2,7 @@
 
 namespace UDeploy\Taxi;
 
+use Illuminate\Container\Container;
 use Illuminate\Support\Str;
 use function Taxi\git_branch;
 use function Valet\info;
@@ -9,7 +10,6 @@ use function Valet\info;
 class Site
 {
     public function __construct(
-        public CommandLine $cli,
         protected string $root,
         protected array $attributes = [],
         protected array $buildCommands = [],
@@ -17,6 +17,8 @@ class Site
     ) {
         $this->folder = Str::kebab($this->name);
         $this->path = $this->root.'/'.$this->folder;
+
+        $this->cli = Container::getInstance()->make(CommandLine::class);
     }
 
     public function build(): static
