@@ -34,11 +34,6 @@ class Config extends Repository
         }
     }
 
-    protected function getCachedConfigurationFile(?string $environment)
-    {
-
-    }
-
     /**
      * Get the configuration files for the selected environment
      */

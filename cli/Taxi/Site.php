@@ -3,13 +3,18 @@
 namespace UDeploy\Taxi;
 
 use Illuminate\Support\Str;
+use UDeploy\Taxi\Traits\HasAttributes;
+use function PHPUnit\Framework\matches;
 use function Taxi\git_branch;
 use function Taxi\make;
 use TaxiFileSystem;
 use function Valet\info;
+use function Valet\warning;
 
 class Site
 {
+    use HasAttributes;
+
     protected ?SiteConfig $config = null;
 
     public function __construct(
@@ -43,6 +48,7 @@ class Site
             ->gitCheckoutDefaultBranch()
             ->valetSecure()
             ->runBuildCommands()
+            ->setupDatabase()
             ->runSiteBuildCommands()
             ->buildComplete();
     }
@@ -176,6 +182,100 @@ class Site
         return $this;
     }
 
+    public function setupDatabase(): static
+    {
+        if ($this->has('database') && !empty($this->database)) {
+            info('  Setting up database');
+
+            $connections = $this->config()->get('database.connections', []);
+
+            foreach ($this->database as $database) {
+                if(array_key_exists($database->connection, $connections)) {
+                    $this->setupDatabaseConnection(
+                        $connections[$database->connection]
+                    );
+                }else{
+                    warning("- Database connection: ".$database->connection." not configured");
+                }
+            }
+        }
+        return $this;
+    }
+
+    protected function setupDatabaseConnection(
+        array $connection
+    )
+    {
+        $commands = $this->generateDatabaseCommands($connection);
+        foreach ($commands as $command) {
+            $this->cli->runAsUser($command);
+        }
+    }
+
+    protected function generateDatabaseCommands(array $connection): array
+    {
+        $cmds = [];
+
+        $cmds[] = $this->generateDatabaseCommand($connection);
+
+        // has host
+        if(array_key_exists('host', $connection)) {
+            $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['host']);
+        }
+
+        // has write hosts
+        if(array_key_exists('write', $connection)) {
+            // has one host
+            if(is_string($connection['write']['host'])) {
+                $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['write']['host']);
+            }elseif (is_array($connection['write']['host'])) {
+                foreach ($connection['write']['host'] as $host) {
+                    $cmds[] = $this->generateDatabaseGrantsCommand($connection, $host);
+                }
+            }
+        }
+
+        if(array_key_exists('read', $connection)) {
+            if(is_string($connection['read']['host'])) {
+                $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['read']['host']);
+            }elseif (is_array($connection['read']['host'])) {
+                foreach ($connection['read']['host'] as $host) {
+                    $cmds[] = $this->generateDatabaseGrantsCommand($connection, $host);
+                }
+            }
+        }
+
+        return $cmds;
+    }
+
+    protected function generateDatabaseCommand(array $connection): string
+    {
+        return match ($connection['driver']) {
+            'mysql' => 'mysql -e "CREATE DATABASE IF NOT EXISTS '.$connection['database'].';',
+            default => ''
+        };
+    }
+
+    protected function generateDatabaseGrantsCommand(array $connection, string $host)
+    {
+        return match ($connection['driver']) {
+            'mysql' => 'mysql -e "GRANT ALL PRIVILEGES ON '.$connection['database'].'.* TO '.$connection['username'].'@'.$host.' IDENTIFIED BY \''.$connection['password'].'\'"',
+            default => ''
+        };
+    }
+
+    private function getHost(array $connection): string
+    {
+        if(array_key_exists('host', $connection)) {
+            return $connection['host'];
+        }
+
+        if(array_key_exists('write', $connection)) {
+            return $connection['write']['host'];
+        }
+    }
+
+
     public function runBuildCommands(): static
     {
         // run global build hooks
@@ -204,31 +304,5 @@ class Site
     {
         collect($commands)
             ->each(fn ($hook) => $this->cli->path($this->path)->runAsUser($hook));
-    }
-
-    public function get($property): mixed
-    {
-        if ($this->has($property)) {
-            return $this->attributes[$property];
-        }
-
-        return null;
-    }
-
-    public function has($property): bool
-    {
-        return array_key_exists($property, $this->attributes);
-    }
-
-    public function __set($property, $value)
-    {
-        return $this->attributes[$property] = $value;
-    }
-
-    public function __get($property): mixed
-    {
-        return $this->has($property)
-            ? $this->attributes[$property]
-            : null;
     }
 }

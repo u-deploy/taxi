@@ -25,6 +25,20 @@
                         "vcs": {
                             "type": "string"
                         },
+                        "database": {
+                            "type": "array",
+                            "contains": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "connection": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
                         "post-build": {
                             "type": "array",
                             "contains": {
