@@ -1,79 +1,87 @@
 {
-    "$schema": "https://json-schema.org/draft/2019-09/schema",
-    "$id": "https://udeploy.dev/taxi/taxi.json",
-    "type": "object",
-    "properties": {
-        "sites": {
-            "type": "array",
-            "contains": {
-                "type": "object",
-                "contains": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string"
-                        },
-                        "php": {
-                            "type": "string"
-                        },
-                        "branch": {
-                            "type": "string"
-                        },
-                        "secure": {
-                            "type": "boolean"
-                        },
-                        "vcs": {
-                            "type": "string"
-                        },
-                        "database": {
-                            "type": "array",
-                            "contains": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "connection": {
-                                        "type": "string"
-                                    }
-                                }
-                            }
-                        },
-                        "post-build": {
-                            "type": "array",
-                            "contains": {
-                                "type": "string"
-                            }
-                        },
-                        "post-reset": {
-                            "type": "array",
-                            "contains": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "required": ["name", "branch", "vcs"]
-                }
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "https://udeploy.dev/taxi/taxi.json",
+  "type": "object",
+  "properties": {
+    "sites": {
+      "type": "array",
+      "contains": {
+        "type": "object",
+        "contains": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "php": {
+              "type": "string"
+            },
+            "branch": {
+              "type": "string"
+            },
+            "secure": {
+              "type": "boolean"
+            },
+            "vcs": {
+              "type": "string"
+            },
+            "database": {
+              "type": "array",
+              "contains": {
+                "type": "string"
+              }
+            },
+            "post-build": {
+              "type": "array",
+              "contains": {
+                "type": "string"
+              }
+            },
+            "post-reset": {
+              "type": "array",
+              "contains": {
+                "type": "string"
+              }
             }
-        },
-        "hooks": {
-            "type": "object",
-            "required": ["build", "reset"],
-            "properties": {
-                "build": {
-                    "type": "array",
-                    "contains": {
-                        "type": "string"
-                    }
-                },
-                "reset": {
-                    "type": "array",
-                    "contains": {
-                        "type": "string"
-                    }
-                }
-            }
+          },
+          "required": [
+            "name",
+            "branch",
+            "vcs"
+          ]
         }
+      }
     },
-    "required": ["sites", "hooks"]
+    "hooks": {
+      "type": "object",
+      "required": [
+        "build",
+        "reset"
+      ],
+      "properties": {
+        "build": {
+          "type": "array",
+          "contains": {
+            "type": "string"
+          }
+        },
+        "reset": {
+          "type": "array",
+          "contains": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "contains": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "sites",
+    "hooks"
+  ]
 }

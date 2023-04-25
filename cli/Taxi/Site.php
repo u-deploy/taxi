@@ -2,12 +2,12 @@
 
 namespace UDeploy\Taxi;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use UDeploy\Taxi\Traits\HasAttributes;
-use function PHPUnit\Framework\matches;
 use function Taxi\git_branch;
 use function Taxi\make;
 use TaxiFileSystem;
+use UDeploy\Taxi\Traits\HasAttributes;
 use function Valet\info;
 use function Valet\warning;
 
@@ -16,6 +16,10 @@ class Site
     use HasAttributes;
 
     protected ?SiteConfig $config = null;
+
+    protected Brew $brew;
+
+    protected CommandLine $cli;
 
     public function __construct(
         protected string $root,
@@ -27,6 +31,7 @@ class Site
         $this->path = $this->root.'/'.$this->folder;
 
         $this->cli = make(CommandLine::class);
+        $this->brew = make(Brew::class);
     }
 
     public function config(): ?SiteConfig
@@ -184,97 +189,76 @@ class Site
 
     public function setupDatabase(): static
     {
-        if ($this->has('database') && !empty($this->database)) {
+        if ($this->has('database')) {
             info('  Setting up database');
-
             $connections = $this->config()->get('database.connections', []);
 
             foreach ($this->database as $database) {
-                if(array_key_exists($database->connection, $connections)) {
-                    $this->setupDatabaseConnection(
-                        $connections[$database->connection]
-                    );
-                }else{
-                    warning("- Database connection: ".$database->connection." not configured");
+                if (array_key_exists($database, $connections)) {
+                    if ($this->doesNotHaveBrewServicesInstalled($connections[$database]['driver'])) {
+                        warning('- Database connection: '.$database.' driver service not configured');
+                    } else {
+                        $this->setupDatabaseConnection(
+                            $connections[$database]
+                        );
+                    }
+                } else {
+                    warning('- Database connection: '.$database.' not configured');
                 }
             }
         }
+
         return $this;
     }
 
-    protected function setupDatabaseConnection(
-        array $connection
-    )
+    protected function doesNotHaveBrewServicesInstalled(string $driver): bool
+    {
+        return $this->getBrewServicesByDriver($driver)
+            ->filter(fn ($service) => $this->brew->installed($service))
+            ->isEmpty();
+    }
+
+    protected function getBrewServicesByDriver(string $driver): Collection
+    {
+        return match ($driver) {
+            'mysql' => collect(['mysql', 'mariadb']),
+            'sqlite' => collect(['sqlite']),
+            'pgsql' => collect(['postgresql']),
+            default => collect()
+        };
+    }
+
+    protected function setupDatabaseConnection(array $connection)
     {
         $commands = $this->generateDatabaseCommands($connection);
+
         foreach ($commands as $command) {
             $this->cli->runAsUser($command);
         }
     }
 
-    protected function generateDatabaseCommands(array $connection): array
+    protected function generateDatabaseCommands(array $connection): Collection
     {
-        $cmds = [];
-
-        $cmds[] = $this->generateDatabaseCommand($connection);
-
-        // has host
-        if(array_key_exists('host', $connection)) {
-            $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['host']);
-        }
-
-        // has write hosts
-        if(array_key_exists('write', $connection)) {
-            // has one host
-            if(is_string($connection['write']['host'])) {
-                $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['write']['host']);
-            }elseif (is_array($connection['write']['host'])) {
-                foreach ($connection['write']['host'] as $host) {
-                    $cmds[] = $this->generateDatabaseGrantsCommand($connection, $host);
-                }
-            }
-        }
-
-        if(array_key_exists('read', $connection)) {
-            if(is_string($connection['read']['host'])) {
-                $cmds[] = $this->generateDatabaseGrantsCommand($connection, $connection['read']['host']);
-            }elseif (is_array($connection['read']['host'])) {
-                foreach ($connection['read']['host'] as $host) {
-                    $cmds[] = $this->generateDatabaseGrantsCommand($connection, $host);
-                }
-            }
-        }
-
-        return $cmds;
+        return collect()
+            ->push($this->generateDatabaseCommand($connection))
+            ->push($this->generateDatabaseGrantsCommand($connection));
     }
 
     protected function generateDatabaseCommand(array $connection): string
     {
         return match ($connection['driver']) {
-            'mysql' => 'mysql -e "CREATE DATABASE IF NOT EXISTS '.$connection['database'].';',
+            'mysql' => 'mysql -e "CREATE DATABASE IF NOT EXISTS '.$connection['database'].';"',
             default => ''
         };
     }
 
-    protected function generateDatabaseGrantsCommand(array $connection, string $host)
+    protected function generateDatabaseGrantsCommand(array $connection)
     {
         return match ($connection['driver']) {
-            'mysql' => 'mysql -e "GRANT ALL PRIVILEGES ON '.$connection['database'].'.* TO '.$connection['username'].'@'.$host.' IDENTIFIED BY \''.$connection['password'].'\'"',
+            'mysql' => 'mysql -e "GRANT ALL PRIVILEGES ON '.$connection['database'].'.* TO '.$connection['username'].'@\'127.0.0.1\' IDENTIFIED BY \''.$connection['password'].'\'"',
             default => ''
         };
     }
-
-    private function getHost(array $connection): string
-    {
-        if(array_key_exists('host', $connection)) {
-            return $connection['host'];
-        }
-
-        if(array_key_exists('write', $connection)) {
-            return $connection['write']['host'];
-        }
-    }
-
 
     public function runBuildCommands(): static
     {

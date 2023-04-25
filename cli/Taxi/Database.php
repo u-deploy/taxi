@@ -7,8 +7,7 @@ class Database
     public function __construct(
         public CommandLine $cli,
         public Config $config
-    )
-    {
+    ) {
         //
     }
 
@@ -17,8 +16,7 @@ class Database
         string $database,
         string $user,
         string $password
-    ): string
-    {
+    ): string {
 
     }
 }

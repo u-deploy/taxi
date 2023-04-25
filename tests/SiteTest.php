@@ -1,6 +1,9 @@
 <?php
 
+use UDeploy\Taxi\Brew;
+use UDeploy\Taxi\CommandLine;
 use UDeploy\Taxi\Site;
+use function Valet\swap;
 
 class SiteTest extends BaseApplicationTestCase
 {
@@ -50,5 +53,38 @@ class SiteTest extends BaseApplicationTestCase
             'Cached Name',
             $site->config()->get('app.name', 'default')
         );
+    }
+
+    public function test_site_can_setup_database()
+    {
+        $brew = Mockery::mock(Brew::class);
+        $brew->shouldReceive('installed')->with('mariadb')->andReturnTrue();
+        $brew->shouldReceive('installed')->with('mysql')->andReturnFalse();
+
+        $cli = Mockery::mock(CommandLine::class);
+
+        collect([
+            'mysql -e "CREATE DATABASE IF NOT EXISTS forge;"',
+            'mysql -e "GRANT ALL PRIVILEGES ON forge.* TO forge@\'127.0.0.1\' IDENTIFIED BY \'secret\'"',
+        ])->each(fn ($command) => $cli->shouldReceive('runAsUser')
+            ->ordered()
+            ->with($command)
+            ->once()
+        );
+
+        swap(Brew::class, $brew);
+        swap(CommandLine::class, $cli);
+
+        $site = new Site(
+            __DIR__.'/fixtures/Parked/Sites/Config/cached-config',
+            [
+                'name' => 'laravel-config',
+                'database' => [
+                    'mysql',
+                ],
+            ]
+        );
+
+        $site->setupDatabase();
     }
 }

@@ -6,6 +6,9 @@
       "branch": "main",
       "secure": true,
       "vcs": "https://github.com/laravel/laravel",
+      "database": [
+        "mysql"
+      ],
       "post-build": [
       ],
       "post-reset": [

@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
+use function Taxi\make;
 use UDeploy\Taxi\Exceptions\ConfigurationMissing;
 use UDeploy\Taxi\Exceptions\InvalidConfiguration;
 use function Valet\warning;
@@ -94,6 +95,9 @@ class Taxi
         // get te configuration / throw exception on bad file
         $this->loadTaxiConfig();
 
+        // setup brew services, redis/mariadb/minio etc
+        $this->setupServices();
+
         // loop through vcs and build sites
         collect($this->taxiConfig['sites'])
             ->each(fn ($site) => (new Site(
@@ -114,6 +118,24 @@ class Taxi
     protected function getResetCommands(): array
     {
         return $this->taxiConfig['hooks']['reset'] ?? [];
+    }
+
+    public function setupServices(): self
+    {
+        if (array_key_exists('services', $this->taxiConfig)) {
+
+            /** @var Brew $brew */
+            $brew = make(Brew::class);
+
+            collect($this->taxiConfig['services'])
+                ->each(function ($service) use ($brew) {
+                    $brew->ensureInstalled($service);
+                    $brew->restartService($service);
+                });
+
+        }
+
+        return $this;
     }
 
     /**
