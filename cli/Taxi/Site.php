@@ -2,13 +2,25 @@
 
 namespace UDeploy\Taxi;
 
-use Illuminate\Container\Container;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use function Taxi\git_branch;
+use function Taxi\make;
+use TaxiFileSystem;
+use UDeploy\Taxi\Traits\HasAttributes;
 use function Valet\info;
+use function Valet\warning;
 
 class Site
 {
+    use HasAttributes;
+
+    protected ?SiteConfig $config = null;
+
+    protected Brew $brew;
+
+    protected CommandLine $cli;
+
     public function __construct(
         protected string $root,
         protected array $attributes = [],
@@ -18,7 +30,19 @@ class Site
         $this->folder = Str::kebab($this->name);
         $this->path = $this->root.'/'.$this->folder;
 
-        $this->cli = Container::getInstance()->make(CommandLine::class);
+        $this->cli = make(CommandLine::class);
+        $this->brew = make(Brew::class);
+    }
+
+    public function config(): ?SiteConfig
+    {
+        if (is_null($this->config) && TaxiFileSystem::isDir($this->path)) {
+            $this->config = make(SiteConfig::class, [
+                'path' => $this->path,
+            ]);
+        }
+
+        return $this->config;
     }
 
     public function build(): static
@@ -29,6 +53,7 @@ class Site
             ->gitCheckoutDefaultBranch()
             ->valetSecure()
             ->runBuildCommands()
+            ->setupDatabase()
             ->runSiteBuildCommands()
             ->buildComplete();
     }
@@ -162,6 +187,79 @@ class Site
         return $this;
     }
 
+    public function setupDatabase(): static
+    {
+        if ($this->has('database')) {
+            info('  Setting up database');
+            $connections = $this->config()->get('database.connections', []);
+
+            foreach ($this->database as $database) {
+                if (array_key_exists($database, $connections)) {
+                    if ($this->doesNotHaveBrewServicesInstalled($connections[$database]['driver'])) {
+                        warning('- Database connection: '.$database.' driver service not configured');
+                    } else {
+                        $this->setupDatabaseConnection(
+                            $connections[$database]
+                        );
+                    }
+                } else {
+                    warning('- Database connection: '.$database.' not configured');
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    protected function doesNotHaveBrewServicesInstalled(string $driver): bool
+    {
+        return $this->getBrewServicesByDriver($driver)
+            ->filter(fn ($service) => $this->brew->installed($service))
+            ->isEmpty();
+    }
+
+    protected function getBrewServicesByDriver(string $driver): Collection
+    {
+        return match ($driver) {
+            'mysql' => collect(['mysql', 'mariadb']),
+            'sqlite' => collect(['sqlite']),
+            'pgsql' => collect(['postgresql']),
+            default => collect()
+        };
+    }
+
+    protected function setupDatabaseConnection(array $connection)
+    {
+        $commands = $this->generateDatabaseCommands($connection);
+
+        foreach ($commands as $command) {
+            $this->cli->runAsUser($command);
+        }
+    }
+
+    protected function generateDatabaseCommands(array $connection): Collection
+    {
+        return collect()
+            ->push($this->generateDatabaseCommand($connection))
+            ->push($this->generateDatabaseGrantsCommand($connection));
+    }
+
+    protected function generateDatabaseCommand(array $connection): string
+    {
+        return match ($connection['driver']) {
+            'mysql' => 'mysql -e "CREATE DATABASE IF NOT EXISTS '.$connection['database'].';"',
+            default => ''
+        };
+    }
+
+    protected function generateDatabaseGrantsCommand(array $connection)
+    {
+        return match ($connection['driver']) {
+            'mysql' => 'mysql -e "GRANT ALL PRIVILEGES ON '.$connection['database'].'.* TO '.$connection['username'].'@\'127.0.0.1\' IDENTIFIED BY \''.$connection['password'].'\'"',
+            default => ''
+        };
+    }
+
     public function runBuildCommands(): static
     {
         // run global build hooks
@@ -190,31 +288,5 @@ class Site
     {
         collect($commands)
             ->each(fn ($hook) => $this->cli->path($this->path)->runAsUser($hook));
-    }
-
-    public function get($property): mixed
-    {
-        if ($this->has($property)) {
-            return $this->attributes[$property];
-        }
-
-        return null;
-    }
-
-    public function has($property): bool
-    {
-        return array_key_exists($property, $this->attributes);
-    }
-
-    public function __set($property, $value)
-    {
-        return $this->attributes[$property] = $value;
-    }
-
-    public function __get($property): mixed
-    {
-        return $this->has($property)
-            ? $this->attributes[$property]
-            : null;
     }
 }

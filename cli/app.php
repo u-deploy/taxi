@@ -7,6 +7,7 @@ use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use UDeploy\Taxi\Config;
 use function Valet\info;
 use function Valet\table;
 use function Valet\warning;
@@ -41,6 +42,10 @@ $dispatcher->addListener(
     });
 
 Upgrader::onEveryRun();
+
+Container::getInstance()->singleton(Config::class, function () {
+    return new Config();
+});
 
 /**
  * Install Taxi and any required services.

@@ -5,6 +5,9 @@
       "php": "php@8.1",
       "branch": "main",
       "secure": true,
+      "database": [
+        "mysql"
+      ],
       "vcs": "https://github.com/laravel/laravel",
       "post-build": [
         "cp .env.example .env",
@@ -33,5 +36,10 @@
       "composer install",
       "npm run production"
     ]
-  }
+  },
+  "services": [
+    "mariadb",
+    "redis",
+    "minio"
+  ]
 }

@@ -34,7 +34,7 @@ class CliTest extends BaseApplicationTestCase
 
         $files = Mockery::mock(Filesystem::class)->makePartial();
         $files->shouldReceive('getTaxiStub')->once()->with('taxi.json')->andReturn($contents);
-        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH . '/Scratch'));
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Scratch'));
         $files->shouldReceive('putAsUser')->once()->withSomeOfArgs($contents);
 
         swap(Filesystem::class, $files);
@@ -58,7 +58,7 @@ class CliTest extends BaseApplicationTestCase
             ->andReturn(new Response(200, [], $contents));
 
         $files = Mockery::mock(Filesystem::class)->makePartial();
-        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH . '/Scratch'));
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Scratch'));
         $files->shouldReceive('putAsUser')->once()->withSomeOfArgs($contents);
 
         swap(Client::class, $guzzle);
@@ -94,7 +94,7 @@ class CliTest extends BaseApplicationTestCase
         [$app, $tester] = $this->appAndTester();
 
         $files = Mockery::mock(Filesystem::class)->makePartial();
-        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH . '/Bad/empty'));
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Bad/empty'));
 
         swap(Filesystem::class, $files);
 
@@ -109,7 +109,7 @@ class CliTest extends BaseApplicationTestCase
         [$app, $tester] = $this->appAndTester();
 
         $files = Mockery::mock(Filesystem::class)->makePartial();
-        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH . '/Bad/missing-required'));
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn(realpath(TAXI_HOME_PATH.'/Bad/missing-required'));
 
         swap(Filesystem::class, $files);
 
@@ -122,7 +122,7 @@ class CliTest extends BaseApplicationTestCase
     public function test_build_command_runs_commands_in_order_from_configuration()
     {
         [$app, $tester] = $this->appAndTester();
-        $testDirectory = realpath(TAXI_HOME_PATH . '/Parked/Sites/Single/single-taxi-site');
+        $testDirectory = realpath(TAXI_HOME_PATH.'/Parked/Sites/Single/single-taxi-site');
         $files = Mockery::mock(Filesystem::class)->makePartial();
         $files->shouldReceive('isGitEnabled')->andReturnTrue();
         $files->shouldReceive('getGitHead')->andReturn('ref: refs/heads/main');
@@ -140,7 +140,7 @@ class CliTest extends BaseApplicationTestCase
             'composer install',
             'cp .env.example .env',
             'php artisan key:generate',
-        ])->each(fn($command) => $cli->shouldReceive('path->runAsUser')
+        ])->each(fn ($command) => $cli->shouldReceive('path->runAsUser')
             ->ordered()
             ->with($command)
             ->once()
@@ -176,7 +176,7 @@ Taxi build successful!
     public function test_reset_command_runs_expected_commands_for_taxi_configuration()
     {
         [$app, $tester] = $this->appAndTester();
-        $testDirectory = realpath(TAXI_HOME_PATH . '/Parked/Sites/Single/single-taxi-site');
+        $testDirectory = realpath(TAXI_HOME_PATH.'/Parked/Sites/Single/single-taxi-site');
         $files = Mockery::mock(Filesystem::class)->makePartial();
         $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn($testDirectory);
         $files->shouldReceive('isGitEnabled')->andReturnTrue();
@@ -190,7 +190,7 @@ Taxi build successful!
             'composer install',
             'npm run production',
             'php artisan key:generate',
-        ])->each(fn($command) => $cli->shouldReceive('path->runAsUser')
+        ])->each(fn ($command) => $cli->shouldReceive('path->runAsUser')
             ->ordered()
             ->with($command)
             ->once()
@@ -218,8 +218,8 @@ Taxi reset successful!
 
         $files = Mockery::mock(Filesystem::class);
         $files->shouldReceive('ensureDirExists')->once()->with('/etc/sudoers.d')->andReturnTrue();
-        $files->shouldReceive('put')->once()->with('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = ' . BREW_PREFIX . '/bin/taxi *
-        %admin ALL=(root) NOPASSWD:SETENV: TAXI' . PHP_EOL);
+        $files->shouldReceive('put')->once()->with('/etc/sudoers.d/taxi', 'Cmnd_Alias TAXI = '.BREW_PREFIX.'/bin/taxi *
+        %admin ALL=(root) NOPASSWD:SETENV: TAXI'.PHP_EOL);
 
         swap(Filesystem::class, $files);
 
@@ -248,7 +248,7 @@ Taxi reset successful!
 
         $cli = Mockery::mock(CommandLine::class);
         $cli->shouldReceive('quietly')->once()->with('rm /etc/sudoers.d/taxi');
-        $cli->shouldReceive('quietlyAsUser')->once()->with('rm ' . BREW_PREFIX . '/bin/taxi');
+        $cli->shouldReceive('quietlyAsUser')->once()->with('rm '.BREW_PREFIX.'/bin/taxi');
 
         swap(CommandLine::class, $cli);
 
@@ -261,36 +261,36 @@ Taxi reset successful!
     {
         [$app, $tester] = $this->appAndTester();
 
-        Site::link(__DIR__ . '/fixtures/Parked/Sites/taxi-test-site', 'taxi');
+        Site::link(__DIR__.'/fixtures/Parked/Sites/taxi-test-site', 'taxi');
         $tester->run(['command' => 'valet']);
         $tester->assertCommandIsSuccessful();
 
         $this->assertStringContainsString('http://taxi.test', $tester->getDisplay());
-        $this->assertStringContainsString('fixtures/Parked/Sites/taxi.json |' . PHP_EOL, $tester->getDisplay());
+        $this->assertStringContainsString('fixtures/Parked/Sites/taxi.json |'.PHP_EOL, $tester->getDisplay());
     }
 
     public function test_valet_command_with_taxi_file_in_site()
     {
         [$app, $tester] = $this->appAndTester();
 
-        Site::link(__DIR__ . '/fixtures/Parked/Sites/Single/single-taxi-site', 'taxi-local');
+        Site::link(__DIR__.'/fixtures/Parked/Sites/Single/single-taxi-site', 'taxi-local');
         $tester->run(['command' => 'valet']);
         $tester->assertCommandIsSuccessful();
 
         $this->assertStringContainsString('http://taxi-local.test', $tester->getDisplay());
-        $this->assertStringContainsString('fixtures/Parked/Sites/Single/single-taxi-site/taxi.json |' . PHP_EOL, $tester->getDisplay());
+        $this->assertStringContainsString('fixtures/Parked/Sites/Single/single-taxi-site/taxi.json |'.PHP_EOL, $tester->getDisplay());
     }
 
     public function test_valet_command_non_taxi()
     {
         [$app, $tester] = $this->appAndTester();
 
-        Site::link(__DIR__ . '/fixtures/Parked/Sites/Link/standard-valet-site', 'valet');
+        Site::link(__DIR__.'/fixtures/Parked/Sites/Link/standard-valet-site', 'valet');
 
         $tester->run(['command' => 'valet']);
         $tester->assertCommandIsSuccessful();
 
         $this->assertStringContainsString('http://valet.test', $tester->getDisplay());
-        $this->assertStringContainsString('|      |' . PHP_EOL, $tester->getDisplay());
+        $this->assertStringContainsString('|      |'.PHP_EOL, $tester->getDisplay());
     }
 }
