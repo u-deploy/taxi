@@ -13,7 +13,7 @@ use function Valet\table;
 use function Valet\warning;
 use function Valet\writer;
 
-$version = '0.0.4';
+$version = '0.0.5';
 
 /**
  * Load correct autoloader depending on install location.
