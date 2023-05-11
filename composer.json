@@ -35,6 +35,11 @@
             "tests/BaseApplicationTestCase.php"
         ]
     },
+    "scripts": {
+        "post-update-cmd": [
+            "@php -r \"file_exists('find-usable-php.php') ||  copy('./vendor/laravel/valet/find-usable-php.php', 'find-usable-php.php');\""
+        ]
+    },
     "authors": [
         {
             "name": "Richard Styles",
