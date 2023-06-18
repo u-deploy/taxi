@@ -59,6 +59,12 @@
                     }
                 }
             }
+        },
+        "services": {
+            "type": "array",
+            "contains": {
+                "type": "string"
+            }
         }
     },
     "required": ["sites", "hooks"]
