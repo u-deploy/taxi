@@ -26,5 +26,9 @@
       "composer install",
       "npm run production"
     ]
-  }
+  },
+  "services": [
+    "mariadb@10.7",
+    "redis"
+  ]
 }

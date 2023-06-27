@@ -4,6 +4,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use UDeploy\Taxi\CommandLine;
 use UDeploy\Taxi\Filesystem;
+use Valet\Brew;
 use function Valet\swap;
 
 /**
@@ -129,6 +130,16 @@ class CliTest extends BaseApplicationTestCase
         $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn($testDirectory);
 
         $cli = Mockery::mock(CommandLine::class);
+        $brew = Mockery::mock(Brew::class);
+
+        collect([
+            'mariadb@10.7',
+            'redis'
+        ])->each(fn ($command) => $brew->shouldReceive('ensureInstalled')
+            ->ordered()
+            ->with($command)
+            ->once()
+        );
 
         collect([
             'git clone https://github.com/laravel/laravel laravel-single',
@@ -148,12 +159,16 @@ class CliTest extends BaseApplicationTestCase
 
         swap(Filesystem::class, $files);
         swap(CommandLine::class, $cli);
+        swap(Brew::class, $brew);
 
         $tester->run(['command' => 'build']);
 
         $tester->assertCommandIsSuccessful();
 
-        $this->assertEquals('Cloning repository: laravel-single
+        $this->assertEquals('Installing services
+  mariadb@10.7 installed
+  redis installed
+Cloning repository: laravel-single
   Isolating PHP version for site
   Securing valet site
   Running build commands
