@@ -16,7 +16,7 @@ This application requires [Laravel Valet](https://laravel.com/docs/10.x/valet#in
 
 First install via composer;
 
-> composer global install u-deploy/taxi
+> composer global require u-deploy/taxi
 
 Ensure that the `~/.composer/vendor/bin` is in your PATH.
 
