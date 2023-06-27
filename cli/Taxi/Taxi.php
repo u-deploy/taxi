@@ -8,7 +8,9 @@ use Opis\JsonSchema\ValidationResult;
 use Opis\JsonSchema\Validator;
 use UDeploy\Taxi\Exceptions\ConfigurationMissing;
 use UDeploy\Taxi\Exceptions\InvalidConfiguration;
+use function Valet\info;
 use function Valet\warning;
+use function Valet\writer;
 
 class Taxi
 {
@@ -58,13 +60,22 @@ class Taxi
         $this->cli->quietly('rm /etc/sudoers.d/taxi');
     }
 
-    public function call(?string $url = null): ?bool
+    public function call(?string $url = null, ?bool $update = null): ?bool
     {
         if (! is_null($url) && filter_var($url, FILTER_VALIDATE_URL) === false) {
             return warning('Invalid url');
         }
 
         $contents = $this->getCallContents($url);
+
+        if($this->files->exists($this->files->cwd().'/taxi.json')) {
+            if ($update) {
+                //TODO flag to update
+            }else {
+                warning('taxi.json file already exists, remove or use `taxi call --update`');
+                return false;
+            }
+        }
 
         $this->files->putAsUser(
             $this->files->cwd().'/taxi.json',

@@ -53,11 +53,13 @@ $app->command('install', function (OutputInterface $output) {
 /**
  * Call Taxi configuration and save to current directory
  */
-$app->command('call [url]', function (InputInterface $input, OutputInterface $output, $url = null) {
+$app->command('call [url] [--update]', function (InputInterface $input, OutputInterface $output, $url = null) {
     if (Taxi::call($url)) {
         info('<info>Taxi called successfully!</info>');
     }
-})->descriptions('Call Taxi configuration');
+})->descriptions('Call Taxi configuration', [
+    '--update' => 'Trigger an update of the sites managed based on updated configuration file',
+]);
 
 /**
  * Build Taxi configuration

@@ -293,4 +293,30 @@ Taxi reset successful!
         $this->assertStringContainsString('http://valet.test', $tester->getDisplay());
         $this->assertStringContainsString('|      |' . PHP_EOL, $tester->getDisplay());
     }
+
+    public function test_taxi_call_throws_warning_if_taxi_file_already_present()
+    {
+        [$app, $tester] = $this->appAndTester();
+        $testDirectory = realpath(TAXI_HOME_PATH . '/Parked/Sites/Single/single-taxi-site');
+        $files = Mockery::mock(Filesystem::class)->makePartial();
+        $files->shouldReceive('cwd')->zeroOrMoreTimes()->andReturn($testDirectory);
+
+        $client = Mockery::mock(Client::class);
+        $cli = Mockery::mock(CommandLine::class);
+
+        $client->shouldReceive('get')
+            ->andReturn(new Response(body: '{}'))
+            ->once();
+
+        swap(Filesystem::class, $files);
+        swap(CommandLine::class, $cli);
+        swap(Client::class, $client);
+
+        $tester->run(['command' => 'call', 'url' => 'https://google.com']);
+
+
+        $this->assertEquals('taxi.json file already exists, remove or use `taxi call --update`
+', $tester->getDisplay());
+
+    }
 }
